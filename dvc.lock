@@ -1,0 +1,49 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: "python src/prepare.py  data/raw/ogd-smn_puy_h_recent.csv  data/raw/ogd-smn_meta_parameters.csv
+      data/prepared\n"
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: c59c02afcdd7af6a5c01f1b47362ba39.dir
+      size: 1046586
+      nfiles: 3
+    - path: src/prepare.py
+      hash: md5
+      md5: ba12554f2f28739e160ee9fb8c9d3573
+      size: 5983
+    params:
+      params.yaml:
+        prepare:
+          separator_train_val: 0.8
+    outs:
+    - path: data/prepared
+      hash: md5
+      md5: 95c5fcf4ecc0f933b5e7987f5a412f0b.dir
+      size: 212990
+      nfiles: 2
+  train:
+    cmd: "python src/train.py data/prepared/train.parquet data/prepared/test.parquet\n"
+    deps:
+    - path: data/prepared/test.parquet
+      hash: md5
+      md5: af18a7f0c0a8b2d65a1961148069ee2d
+      size: 58245
+    - path: data/prepared/train.parquet
+      hash: md5
+      md5: 13a0b49b94e02abf5ec17f40fc876ff1
+      size: 154745
+    - path: src/train.py
+      hash: md5
+      md5: 304638ce02f281a14aa56ee6d7fbe7d7
+      size: 1271
+    - path: src/utils/seed.py
+      hash: md5
+      md5: 75b1f88de7bb9fe37a970efc4a462d8d
+      size: 168
+    outs:
+    - path: model/model.pkl
+      hash: md5
+      md5: 216142dc359dbf12ea66ab8cef6292ea
+      size: 797
