@@ -23,4 +23,16 @@ stages:
     - data/prepared/meteo_train.parquet
     - data/prepared/meteo_val.parquet
     outs:
-    - model/model.pkl
+      - model/model.pkl
+  evaluate:
+    cmd: >
+      python src/evaluate.py
+      model/model.pkl
+      data/prepared/test.parquet
+    deps:
+      - src/evaluate.py
+      - model/model.pkl
+      - data/prepared/test.parquet
+    outs:
+      - evaluation/plots/prediction_preview.png
+      - evaluation/metrics.json
