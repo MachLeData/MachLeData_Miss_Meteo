@@ -1,0 +1,14 @@
+stages:
+  prepare:
+    cmd: >
+      python src/prepare.py 
+      data/raw/ogd-smn_puy_h_recent.csv 
+      data/raw/ogd-smn_meta_parameters.csv
+      data/prepared
+    deps:
+    - data/raw
+    - src/prepare.py
+    params:
+    - prepare
+    outs:
+    - data/prepared
