@@ -9,6 +9,10 @@ stages:
       md5: c59c02afcdd7af6a5c01f1b47362ba39.dir
       size: 1046586
       nfiles: 3
+    - path: params.yaml
+      hash: md5
+      md5: a4cde66df58fd6a61d29209a961dd75f
+      size: 58
     - path: src/prepare.py
       hash: md5
       md5: ba12554f2f28739e160ee9fb8c9d3573
@@ -34,6 +38,10 @@ stages:
       hash: md5
       md5: fc04e9143f48e785332044fe4a70baa4
       size: 154759
+    - path: params.yaml
+      hash: md5
+      md5: a4cde66df58fd6a61d29209a961dd75f
+      size: 58
     - path: src/train.py
       hash: md5
       md5: 304638ce02f281a14aa56ee6d7fbe7d7
