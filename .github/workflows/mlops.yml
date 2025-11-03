@@ -18,5 +18,9 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: pip install --requirement requirements-freeze.txt
+      - name: Login to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: "${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}"
       - name: Prepare, train and evaluate
         run: dvc repro
