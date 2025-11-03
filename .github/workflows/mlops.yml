@@ -1,0 +1,20 @@
+name: MLOPS
+
+on:
+  push:
+
+  pull_request:
+
+jobs:
+  prepare_train_eval:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install --requirement requirements-freeze.txt
+      - name: Prepare, train and evaluate
+        run: dvc repro
