@@ -6,9 +6,9 @@ stages:
     deps:
     - path: data/raw
       hash: md5
-      md5: c59c02afcdd7af6a5c01f1b47362ba39.dir
-      size: 1046586
-      nfiles: 3
+      md5: a9391695a206135bb6c4675e76d03070.dir
+      size: 1052734
+      nfiles: 4
     - path: src/prepare.py
       hash: md5
       md5: ba12554f2f28739e160ee9fb8c9d3573
@@ -20,54 +20,58 @@ stages:
     outs:
     - path: data/prepared
       hash: md5
-      md5: 8351470654617d159e019598f5be52b7.dir
-      size: 213031
+      md5: 95c5fcf4ecc0f933b5e7987f5a412f0b.dir
+      size: 212990
       nfiles: 2
   train:
     cmd: "python src/train.py data/prepared/train.parquet data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
-      md5: d832ed5facaafd344f596a8808253b62
-      size: 58272
+      md5: af18a7f0c0a8b2d65a1961148069ee2d
+      size: 58245
     - path: data/prepared/train.parquet
       hash: md5
-      md5: fc04e9143f48e785332044fe4a70baa4
-      size: 154759
+      md5: 13a0b49b94e02abf5ec17f40fc876ff1
+      size: 154745
     - path: src/train.py
       hash: md5
-      md5: 304638ce02f281a14aa56ee6d7fbe7d7
-      size: 1271
+      md5: bc9383170ab663ae70802c9af67bc76b
+      size: 4949
     - path: src/utils/seed.py
       hash: md5
       md5: 75b1f88de7bb9fe37a970efc4a462d8d
       size: 168
     outs:
-    - path: model/model.pkl
+    - path: evaluation/plots/train_history.png
       hash: md5
-      md5: 216142dc359dbf12ea66ab8cef6292ea
-      size: 797
+      md5: 51fd235ae14437d22b35b0e11796e392
+      size: 43698
+    - path: model/air_temperature_regressor.bentomodel
+      hash: md5
+      md5: 6e743da586f06052f06f3605f0f46a9d
+      size: 7304
   evaluate:
-    cmd: "python src/evaluate.py model/model.pkl data/prepared/test.parquet\n"
+    cmd: "python src/evaluate.py model/air_temperature_regressor.bentomodel data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
-      md5: d832ed5facaafd344f596a8808253b62
-      size: 58272
-    - path: model/model.pkl
+      md5: af18a7f0c0a8b2d65a1961148069ee2d
+      size: 58245
+    - path: model/air_temperature_regressor.bentomodel
       hash: md5
-      md5: 216142dc359dbf12ea66ab8cef6292ea
-      size: 797
+      md5: 6e743da586f06052f06f3605f0f46a9d
+      size: 7304
     - path: src/evaluate.py
       hash: md5
-      md5: 86f5b3f255b9b29bf354af31245d1d05
-      size: 2255
+      md5: 2e62d74aaf647593eb9f7d5ed464f319
+      size: 2553
     outs:
     - path: evaluation/metrics.json
       hash: md5
-      md5: 49a27e96c9dd28c92b3c656065ed93d7
+      md5: 5f2661f1ec492f8ae0d624851d9139cf
       size: 29
     - path: evaluation/plots/prediction_preview.png
       hash: md5
-      md5: 6135b7082248ecdfadf34422c02e2fb3
-      size: 92940
+      md5: a85fc4a8a1ea6e9c7953989ee03f59d5
+      size: 115653

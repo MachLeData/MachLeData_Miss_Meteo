@@ -23,15 +23,16 @@ stages:
       - data/prepared/train.parquet
       - data/prepared/test.parquet
     outs:
-      - model/model.pkl
+      - model/air_temperature_regressor.bentomodel
+      - evaluation/plots/train_history.png
   evaluate:
     cmd: >
       python src/evaluate.py
-      model/model.pkl
+      model/air_temperature_regressor.bentomodel
       data/prepared/test.parquet
     deps:
       - src/evaluate.py
-      - model/model.pkl
+      - model/air_temperature_regressor.bentomodel
       - data/prepared/test.parquet
     outs:
       - evaluation/plots/prediction_preview.png

@@ -11,6 +11,9 @@ data/prepared/
 # Evaluation results
 evaluation/
 
+# Model files
+model/
+
 # Ignore MacOS files
 .DS_Store
 
