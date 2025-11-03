@@ -1,0 +1,36 @@
+name: MLOPS
+
+on:
+  push:
+
+  pull_request:
+
+jobs:
+  prepare_train_eval:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: "${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install --requirement requirements-freeze.txt
+
+      - name: Prepare, train and evaluate
+        run: dvc repro --pull
+
+      - name: Commit changes in dvc.lock
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Commit changes in dvc.lock
+          file_pattern: dvc.lock

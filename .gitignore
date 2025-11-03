@@ -20,6 +20,9 @@ model/
 # Ignore jupyter notebook checkpoints
 notebook/.ipynb_checkpoints/
 
+# environnment variable
+.env
+
 #IDEA
 .idea
 

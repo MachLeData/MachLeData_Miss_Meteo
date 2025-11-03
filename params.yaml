@@ -1,5 +1,5 @@
 prepare:
-  separator_train_val : 0.8
+  separator_train_val: 0.8
 train:
   reload_previous_model: False
   seed: 713705
