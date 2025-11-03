@@ -22,5 +22,7 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: "${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}"
+      - name: Pull raw data from gcloud
+        run: dvc pull
       - name: Prepare, train and evaluate
         run: dvc repro
