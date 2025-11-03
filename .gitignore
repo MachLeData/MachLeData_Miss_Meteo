@@ -20,6 +20,9 @@ notebook/.ipynb_checkpoints/
 #DVC
 dvc.lock
 
+# environnment variable
+.env
+
 #IDEA
 .idea
 
