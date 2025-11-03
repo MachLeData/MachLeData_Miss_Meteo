@@ -1,5 +1,4 @@
 prepare:
-  separator_train_val : 0.8
+  separator_train_val: 0.8
 train:
   seed: 713705
-    

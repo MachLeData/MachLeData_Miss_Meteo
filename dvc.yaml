@@ -6,6 +6,7 @@ stages:
       data/raw/ogd-smn_meta_parameters.csv
       data/prepared
     deps:
+      - params.yaml
       - data/raw
       - src/prepare.py
     params:
@@ -18,6 +19,7 @@ stages:
       data/prepared/train.parquet
       data/prepared/test.parquet
     deps:
+      - params.yaml
       - src/train.py
       - src/utils/seed.py
       - data/prepared/train.parquet
@@ -33,6 +35,7 @@ stages:
       - src/evaluate.py
       - model/model.pkl
       - data/prepared/test.parquet
-    outs:
+    plots:
       - evaluation/plots/prediction_preview.png
+    outs:
       - evaluation/metrics.json
