@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import pandas as pd
 import pickle
+import bentoml
 
 from sklearn.metrics import root_mean_squared_error
 
@@ -48,8 +49,14 @@ def main() -> None:
     test_features = test_df.drop(["reference_timestamp", "air_temperature"], axis=1)
     test_target = test_df["air_temperature"]
 
+    # Import the model to the model store from a local model folder
+    try:
+        bentoml.models.import_model(f"{model_file.absolute()}")
+    except bentoml.exceptions.BentoMLException:
+        print("Model already exists in the model store - skipping import.")
+
     # Load the model (path to the model)
-    model = pickle.load(open(model_file, "rb"))
+    model = bentoml.keras.load_model("air_temperature_regressor")
     test_predict = model.predict(test_features)
 
     # Preview prediction
@@ -62,7 +69,7 @@ def main() -> None:
 
     # Compute performances
     pred_mse = root_mean_squared_error(test_target, test_predict)
-    print(f"RMSE: {pred_mse:.3f}%")
+    print(f"RMSE: {pred_mse:.3f}")
 
     with open(evaluation_folder / "metrics.json", "w") as f:
         json.dump({"\nRMSE": pred_mse}, f)
