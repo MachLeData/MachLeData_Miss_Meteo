@@ -1,4 +1,15 @@
 prepare:
   separator_train_val: 0.8
 train:
+  reload_previous_model: False
   seed: 713705
+  n_neurons1: 16
+  n_neurons2: 8
+  dropout: 0.2
+  activation: gelu
+  kernel_initializer: he_normal
+  learning_rate: 0.005
+  loss: mse
+  n_epochs: 15
+  batch_size: 32
+    
