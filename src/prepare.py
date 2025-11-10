@@ -6,9 +6,32 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from typing import Optional
+from datetime import timedelta, timezone, datetime
 from sklearn.impute import KNNImputer
 from sklearn.preprocessing import FunctionTransformer, PowerTransformer, StandardScaler
 from sklearn.compose import ColumnTransformer
+
+# -----------------------------
+# Utilitaires (log + écriture atomique)
+# -----------------------------
+
+def _describe_ts(df: pd.DataFrame, col: str = "reference_timestamp", label: str = "DF") -> None:
+    try:
+        if col in df.columns and len(df) > 0:
+            print(f"[{label}] rows={len(df)} range=[{df[col].min()} → {df[col].max()}]")
+        else:
+            print(f"[{label}] rows={len(df)} (col '{col}' absente ou DF vide)")
+    except Exception as e:
+        print(f"[{label}] describe error: {e}")
+
+
+def _atomic_to_parquet(df: pd.DataFrame, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    df.to_parquet(tmp, index=False, engine="pyarrow", compression="snappy")
+    tmp.replace(path)
+    print(f"[WRITE] → {path.resolve()} (rows={len(df)})")
+
 
 # -----------------------------
 # Téléchargement + assemblage API
@@ -38,7 +61,7 @@ def _guess_time_col(df: pd.DataFrame) -> str:
 
 def load_dataset_from_api(arg_urls: str) -> pd.DataFrame:
     """Charge 2 URLs séparées par ';' (historical;recent/now), concatène,
-    standardise la colonne temporelle en `reference_timestamp` et dédoublonne.
+    standardise la colonne temporelle en `reference_timestamp` (UTC) et dédoublonne.
     """
     if ";" not in arg_urls or ("http" not in arg_urls and "https" not in arg_urls):
         raise ValueError(
@@ -56,9 +79,9 @@ def load_dataset_from_api(arg_urls: str) -> pd.DataFrame:
     time_col = _guess_time_col(df)
     df = df.rename(columns={time_col: "reference_timestamp"})
 
-    # Parsing robuste (souvent dd.mm.yyyy HH:MM)
+    # Parsing en UTC (format typique dd.mm.yyyy HH:MM)
     df["reference_timestamp"] = pd.to_datetime(
-        df["reference_timestamp"], errors="coerce", dayfirst=True
+        df["reference_timestamp"], errors="coerce", dayfirst=True, utc=True
     )
 
     df = (
@@ -70,7 +93,7 @@ def load_dataset_from_api(arg_urls: str) -> pd.DataFrame:
 
 
 # -----------------------------
-# Script principal (pipeline inchangé)
+# Script principal (pipeline inchangé + filtre dernière semaine)
 # -----------------------------
 
 def main() -> None:
@@ -83,6 +106,10 @@ def main() -> None:
     prepare_params = yaml.safe_load(open("params.yaml"))["prepare"]
     separator_train_val = prepare_params["separator_train_val"]
 
+    # Fenêtre par défaut
+    WINDOW_DAYS = 7
+    LAG_BUFFER_HOURS = 24  # pour compenser le shift(24)
+
     api_urls = sys.argv[1]                 # "historical;recent"
     raw_metadata_file = Path(sys.argv[2])
     prepared_dataset_folder = Path(sys.argv[3])
@@ -91,6 +118,15 @@ def main() -> None:
 
     # --- Read data depuis API ---
     meteo_df = load_dataset_from_api(api_urls)
+    _describe_ts(meteo_df, label="RAW API merged")
+
+    # Filtre dernière semaine (avec buffer 24h en amont)
+    end_utc = pd.Timestamp.now(tz=timezone.utc)
+    start_utc = end_utc - pd.Timedelta(days=WINDOW_DAYS)
+    start_with_buffer = start_utc - pd.Timedelta(hours=LAG_BUFFER_HOURS)
+    meteo_df = meteo_df[(meteo_df["reference_timestamp"] > start_with_buffer) & (meteo_df["reference_timestamp"] <= end_utc)].copy()
+    meteo_df.reset_index(drop=True, inplace=True)
+    _describe_ts(meteo_df, label="RAW API filtered (+24h buffer)")
 
     metadata_df = pd.read_csv(raw_metadata_file, encoding='ISO-8859-1', sep=';', on_bad_lines='skip')
     metadata_df = metadata_df.set_index("parameter_shortname")
@@ -101,13 +137,12 @@ def main() -> None:
         for col in meteo_df.columns if col in metadata_df.index
     }, axis=1)
 
-    # Standardiser le datetime
+    # Standardiser le datetime (reste en UTC tz-aware)
     if "reference_timestamp" not in meteo_df.columns:
         time_col = _guess_time_col(meteo_df)
         meteo_df = meteo_df.rename(columns={time_col: "reference_timestamp"})
-
     meteo_df['reference_timestamp'] = pd.to_datetime(
-        meteo_df['reference_timestamp'], dayfirst=True, errors='coerce'
+        meteo_df['reference_timestamp'], dayfirst=True, errors='coerce', utc=True
     )
     meteo_df = meteo_df.dropna(subset=['reference_timestamp']).sort_values('reference_timestamp')
 
@@ -122,7 +157,7 @@ def main() -> None:
     feature_columns = base_for_features.columns
     features_df = meteo_df[feature_columns].copy()
 
-    # Colonnes redondantes (inchangé)
+    # Colonnes redondantes
     to_drop = [
         'Air temperature 2 m above ground; hourly minimum',
         'Air temperature 2 m above ground; hourly maximum',
@@ -139,7 +174,7 @@ def main() -> None:
     ]
     features_df = features_df.drop(columns=[c for c in to_drop if c in features_df.columns], errors='ignore')
 
-    # Renommer features (inchangé)
+    # Renommer features
     features_df = features_df.rename({
         "Air temperature 2 m above ground; hourly mean": "air_temperature",
         "Relative air humidity 2 m above ground; hourly mean": "air_humidity",
@@ -153,7 +188,7 @@ def main() -> None:
         "reference_timestamp": "reference_timestamp",
     }, axis=1)
 
-    # Transformations
+    # Transformations harmoniques + scaling
     def sin_transformer(period):
         return FunctionTransformer(lambda x: np.sin(x / period * 2 * np.pi))
 
@@ -163,9 +198,11 @@ def main() -> None:
     if "reference_timestamp" not in features_df.columns:
         features_df = features_df.join(meteo_df["reference_timestamp"])  # sécurité
 
-    features_df['hour'] = meteo_df["reference_timestamp"].dt.hour
-    features_df['day'] = meteo_df["reference_timestamp"].dt.day
-    features_df['month'] = meteo_df["reference_timestamp"].dt.month
+    # Utiliser l'heure/mois en UTC par cohérence
+    ts = meteo_df["reference_timestamp"].dt.tz_convert("UTC")
+    features_df['hour'] = ts.dt.hour
+    features_df['day'] = ts.dt.day
+    features_df['month'] = ts.dt.month
 
     if "reference_timestamp" in features_df.columns:
         features_df = features_df.drop("reference_timestamp", axis=1)
@@ -189,6 +226,7 @@ def main() -> None:
 
     column_transformer.set_output(transform="pandas")
     features_df = column_transformer.fit_transform(features_df)
+    print("[TRANSFORM] features_df shape:", features_df.shape)
 
     def transform_column_name(col: str) -> str:
         splitted = col.split("__")
@@ -200,8 +238,6 @@ def main() -> None:
         return col
 
     features_df = features_df.rename({col: transform_column_name(col) for col in features_df.columns}, axis=1)
-
-    print(features_df)
 
     # Imputation
     imputer = KNNImputer(n_neighbors=3)
@@ -216,19 +252,23 @@ def main() -> None:
         features_df.shift(24).rename({col: col + " (lag 24)" for col in features_df.columns}, axis=1),
     ], axis=1)
 
-    # Split
+    # Drop des lignes incomplètes dues au lag, puis **re-filtrage** strict sur [start_utc, end_utc]
+    _describe_ts(final_df, label="FINAL before dropna")
     final_df = final_df.dropna(axis=0)
+    final_df = final_df[(final_df['reference_timestamp'] >= start_utc) & (final_df['reference_timestamp'] <= end_utc)].copy()
+    final_df.reset_index(drop=True, inplace=True)
+    _describe_ts(final_df, label="FINAL windowed 7d")
+
+    # Split
     split_idx = int(len(final_df) * separator_train_val)
     meteo_df_train = final_df.iloc[:split_idx]
     meteo_df_val = final_df.iloc[split_idx:]
+    print("[SPLIT] train rows:", len(meteo_df_train), "— test rows:", len(meteo_df_val))
 
     # Export
     for name, df in {"train": meteo_df_train, "test": meteo_df_val}.items():
-        (prepared_dataset_folder / f"{name}.parquet").parent.mkdir(parents=True, exist_ok=True)
-        df.to_parquet(
-            prepared_dataset_folder / f"{name}.parquet",
-            index=False, engine="pyarrow", compression="snappy"
-        )
+        out_path = prepared_dataset_folder / f"{name}.parquet"
+        _atomic_to_parquet(df, out_path)
 
 
 if __name__ == "__main__":
