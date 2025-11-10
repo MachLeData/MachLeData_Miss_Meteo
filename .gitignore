@@ -3,6 +3,7 @@ __pycache__/
 
 # Virtual environments
 .venv
+.myenv
 
 # Data used to train the models
 data/raw/
