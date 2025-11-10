@@ -21,8 +21,6 @@ model/
 # Ignore jupyter notebook checkpoints
 notebook/.ipynb_checkpoints/
 
-#DVC
-dvc.lock
 
 # environnment variable
 .env
