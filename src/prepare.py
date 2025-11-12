@@ -6,48 +6,18 @@ from sklearn.impute import KNNImputer
 from sklearn.preprocessing import FunctionTransformer, PowerTransformer, StandardScaler
 from sklearn.compose import ColumnTransformer
 import numpy as np
-from datetime import datetime
-
-
-def pick_latest_lastweek_csv(folder: Path) -> Path:
-    """
-    Cherche les fichiers lastweek_*.csv dans `folder` et renvoie
-    celui avec la date la plus récente dans le nom.
-    Ex: lastweek_17112025.csv, lastweek_18112025.csv -> prend 18112025.
-    """
-    if not folder.exists() or not folder.is_dir():
-        print(f"Erreur: le dossier {folder} n'existe pas ou n'est pas un dossier.")
-        exit(1)
-
-    candidates = list(folder.glob("lastweek_*.csv"))
-    if not candidates:
-        print(f"Aucun fichier lastweek_*.csv trouvé dans {folder}")
-        exit(1)
-
-    def parse_date_from_name(path: Path) -> datetime:
-        # nom sans extension, ex: "lastweek_18112025"
-        stem = path.stem
-        date_str = stem.split("lastweek_")[-1]
-        try:
-            return datetime.strptime(date_str, "%d%m%Y")
-        except ValueError:
-            return datetime.min
-
-    latest_file = max(candidates, key=parse_date_from_name)
-    print(f"Utilisation du fichier météo : {latest_file}")
-    return latest_file
 
 def main() -> None:
     if len(sys.argv) != 4:
         print("Arguments error. Usage:\n")
-        print("\tpython3 prepare.py <raw-dataset-folder> <raw-metadata-file> <prepared-dataset-folder>\n")
+        print("\tpython3 prepare.py <raw-dataset-file> <raw-metadata-file> <prepared-dataset-folder>\n")
         exit(1)
 
     # Load parameters
     prepare_params = yaml.safe_load(open("params.yaml"))["prepare"]
     separator_train_val = prepare_params["separator_train_val"]
 
-    raw_dataset_folder = Path(sys.argv[1])
+    raw_dataset_file = Path(sys.argv[1])
     raw_metadata_file = Path(sys.argv[2])
     prepared_dataset_folder = Path(sys.argv[3])
 
@@ -55,7 +25,6 @@ def main() -> None:
         prepared_dataset_folder.mkdir(parents=True)
 
     # Read data
-    raw_dataset_file = pick_latest_lastweek_csv(raw_dataset_folder)
     meteo_df = pd.read_csv(raw_dataset_file, sep=",")
 
     metadata_df = pd.read_csv(raw_metadata_file, encoding='ISO-8859-1', sep=";",on_bad_lines='skip')
