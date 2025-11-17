@@ -27,8 +27,11 @@ jobs:
       - name: Install dependencies
         run: pip install --requirement requirements-freeze.txt
 
-      - name: Prepare, train and evaluate
+      - name: Ingest new data
         run: dvc ingest --pull # TODO: add the correct command to download new data
+
+      - name: Add changes to git
+        run: git add .
 
       - name: Create Pull Request # Pull request will automatically trigger model retraining workflow
         uses: peter-evans/create-pull-request@v6
