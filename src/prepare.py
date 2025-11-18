@@ -6,7 +6,6 @@ from sklearn.impute import KNNImputer
 from sklearn.preprocessing import FunctionTransformer, PowerTransformer, StandardScaler
 from sklearn.compose import ColumnTransformer
 import numpy as np
-<<<<<<< HEAD
 from datetime import datetime
 
 
@@ -37,17 +36,11 @@ def pick_latest_lastweek_csv(folder: Path) -> Path:
     latest_file = max(candidates, key=parse_date_from_name)
     print(f"Utilisation du fichier météo : {latest_file}")
     return latest_file
-=======
->>>>>>> ef1d799 (fix(data): separated ingestion from the API and prepare data)
 
 def main() -> None:
     if len(sys.argv) != 4:
         print("Arguments error. Usage:\n")
-<<<<<<< HEAD
         print("\tpython3 prepare.py <raw-dataset-folder> <raw-metadata-file> <prepared-dataset-folder>\n")
-=======
-        print("\tpython3 prepare.py <raw-dataset-file> <raw-metadata-file> <prepared-dataset-folder>\n")
->>>>>>> ef1d799 (fix(data): separated ingestion from the API and prepare data)
         exit(1)
 
     # Load parameters
