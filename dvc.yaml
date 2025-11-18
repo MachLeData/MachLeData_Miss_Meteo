@@ -1,8 +1,18 @@
 stages:
+  ingestion:
+    cmd: >
+      python src/ingestion.py 
+      "https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/puy/ogd-smn_puy_h_now.csv" 
+      "https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/puy/ogd-smn_puy_h_recent.csv" 
+      "data/intermediate/lastweek_17112025.csv"
+    deps:
+      - src/ingestion.py
+    outs:
+      - data/intermediate
   prepare:
     cmd: >
       python src/prepare.py
-      data/raw/ogd-smn_puy_h_recent.csv
+      data/intermediate/lastweek_17112025.csv
       data/raw/ogd-smn_meta_parameters.csv
       data/prepared
     deps:
@@ -22,8 +32,8 @@ stages:
       - params.yaml
       - src/train.py
       - src/utils/seed.py
-      - data/prepared/meteo_train.parquet
-      - data/prepared/meteo_val.parquet
+      - data/prepared/train.parquet
+      - data/prepared/test.parquet
     outs:
       - model/air_temperature_regressor.bentomodel
       - evaluation/plots/train_history.png

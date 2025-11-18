@@ -1,22 +1,22 @@
 schema: '2.0'
 stages:
   prepare:
-    cmd: "python src/prepare.py data/raw/ogd-smn_puy_h_recent.csv data/raw/ogd-smn_meta_parameters.csv
+    cmd: "python src/prepare.py data/intermediate/lastweek_17112025.csv data/raw/ogd-smn_meta_parameters.csv
       data/prepared\n"
     deps:
     - path: data/raw
       hash: md5
-      md5: a9391695a206135bb6c4675e76d03070.dir
-      size: 1052734
-      nfiles: 4
+      md5: b4bb009585e379462b722a9a4cc13893.dir
+      size: 1060663
+      nfiles: 3
     - path: params.yaml
       hash: md5
-      md5: 437b64e6f6bc136dc183fbd83fcbd9f7
-      size: 259
+      md5: a98e6e5ceef508d2b00a497046128ba8
+      size: 273
     - path: src/prepare.py
       hash: md5
-      md5: ba12554f2f28739e160ee9fb8c9d3573
-      size: 5983
+      md5: 1ac13a41ac42e81dfd96d518f6454844
+      size: 6356
     params:
       params.yaml:
         prepare:
@@ -24,62 +24,77 @@ stages:
     outs:
     - path: data/prepared
       hash: md5
-      md5: 95c5fcf4ecc0f933b5e7987f5a412f0b.dir
-      size: 212990
+      md5: d9e42b7da444c810f3d9568a531f7ca2.dir
+      size: 34265
       nfiles: 2
   train:
     cmd: "python src/train.py data/prepared/train.parquet data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
-      md5: af18a7f0c0a8b2d65a1961148069ee2d
-      size: 58245
+      md5: be147c9233c4e8d074449fb7a0a73939
+      size: 14961
     - path: data/prepared/train.parquet
       hash: md5
-      md5: 13a0b49b94e02abf5ec17f40fc876ff1
-      size: 154745
+      md5: f3d933090d39e7c27d2256d8d6303954
+      size: 19304
     - path: params.yaml
       hash: md5
-      md5: 437b64e6f6bc136dc183fbd83fcbd9f7
-      size: 259
+      md5: a98e6e5ceef508d2b00a497046128ba8
+      size: 273
     - path: src/train.py
       hash: md5
-      md5: bc9383170ab663ae70802c9af67bc76b
-      size: 4949
+      md5: 94a8af819f6f1734570413844860f06e
+      size: 5076
     - path: src/utils/seed.py
       hash: md5
-      md5: 75b1f88de7bb9fe37a970efc4a462d8d
-      size: 168
+      md5: f035ec37efd24c9d56d5226ef3b429c3
+      size: 175
     outs:
     - path: evaluation/plots/train_history.png
       hash: md5
-      md5: c62ae5c68b4d4a69d9c68d312312a6df
-      size: 43117
+      md5: f9a74504e1dd12defc06f90615f2df11
+      size: 53953
     - path: model/air_temperature_regressor.bentomodel
       hash: md5
-      md5: 0f1aba7ba8d2bc3a7eb7f330ad607d1c
-      size: 7268
+      md5: d192131377a7bb45bdecf3eb908a1ffd
+      size: 7288
   evaluate:
     cmd: "python src/evaluate.py model/air_temperature_regressor.bentomodel data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
-      md5: af18a7f0c0a8b2d65a1961148069ee2d
-      size: 58245
+      md5: be147c9233c4e8d074449fb7a0a73939
+      size: 14961
     - path: model/air_temperature_regressor.bentomodel
       hash: md5
-      md5: 0f1aba7ba8d2bc3a7eb7f330ad607d1c
-      size: 7268
+      md5: d192131377a7bb45bdecf3eb908a1ffd
+      size: 7288
     - path: src/evaluate.py
       hash: md5
-      md5: 2e62d74aaf647593eb9f7d5ed464f319
-      size: 2553
+      md5: c27e879ef6a6c2d330c595baf0f77841
+      size: 2636
     outs:
     - path: evaluation/metrics.json
       hash: md5
-      md5: 2427fd7de24f780dfd362d96214cbca6
+      md5: b54c66cfca5feff02b91af7a0b8def3c
       size: 30
     - path: evaluation/plots/prediction_preview.png
       hash: md5
-      md5: b0d3777a54c89af51a1ae2892877d752
-      size: 116493
+      md5: 9ba20bdf070e0d7df891a9e97d3150a0
+      size: 48285
+  ingestion:
+    cmd: "python src/ingestion.py  \"https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/puy/ogd-smn_puy_h_now.csv\"\
+      \  \"https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/puy/ogd-smn_puy_h_recent.csv\"\
+      \  \"data/intermediate/lastweek_17112025.csv\"\n"
+    deps:
+    - path: src/ingestion.py
+      hash: md5
+      md5: ecab0d4ca557d5513e8528dcab4f50b9
+      size: 3375
+    outs:
+    - path: data/intermediate
+      hash: md5
+      md5: 3182e983738474cabdfe4407003eaf20.dir
+      size: 26623
+      nfiles: 1
