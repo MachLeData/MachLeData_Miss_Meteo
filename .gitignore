@@ -8,6 +8,7 @@ __pycache__/
 # Data used to train the models
 data/raw/
 data/prepared/
+data/intermediate
 
 # Evaluation results
 evaluation/
