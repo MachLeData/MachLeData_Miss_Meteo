@@ -1,22 +1,37 @@
 schema: '2.0'
 stages:
+  ingestion:
+    cmd: "python src/ingestion.py  \"https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/puy/ogd-smn_puy_h_now.csv\"\
+      \  \"https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/puy/ogd-smn_puy_h_recent.csv\"\
+      \  \"data/intermediate\"\n"
+    deps:
+    - path: src/ingestion.py
+      hash: md5
+      md5: 6473dc7d0f08d1239696af02f9f2bfc2
+      size: 3640
+    outs:
+    - path: data/intermediate
+      hash: md5
+      md5: 4e54a435663d65ac65b607ff9c69c0ef.dir
+      size: 26621
+      nfiles: 1
   prepare:
-    cmd: "python src/prepare.py data/intermediate/lastweek_17112025.csv data/raw/ogd-smn_meta_parameters.csv
+    cmd: "python src/prepare.py data/intermediate data/raw/ogd-smn_meta_parameters.csv
       data/prepared\n"
     deps:
     - path: data/raw
       hash: md5
-      md5: b4bb009585e379462b722a9a4cc13893.dir
-      size: 1060663
-      nfiles: 3
+      md5: 888600e5bdfe9598366fdded58301472.dir
+      size: 41417
+      nfiles: 1
     - path: params.yaml
       hash: md5
       md5: a98e6e5ceef508d2b00a497046128ba8
       size: 273
     - path: src/prepare.py
       hash: md5
-      md5: 1ac13a41ac42e81dfd96d518f6454844
-      size: 6356
+      md5: db95a05934cf0cff3ed543589376e790
+      size: 7517
     params:
       params.yaml:
         prepare:
@@ -24,20 +39,20 @@ stages:
     outs:
     - path: data/prepared
       hash: md5
-      md5: d9e42b7da444c810f3d9568a531f7ca2.dir
-      size: 34265
+      md5: 83d64fd975cdfe5094c62b6688db7a7a.dir
+      size: 34534
       nfiles: 2
   train:
     cmd: "python src/train.py data/prepared/train.parquet data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
-      md5: be147c9233c4e8d074449fb7a0a73939
-      size: 14961
+      md5: 4377ef5e5cebec44b4a3e030643ded83
+      size: 15060
     - path: data/prepared/train.parquet
       hash: md5
-      md5: f3d933090d39e7c27d2256d8d6303954
-      size: 19304
+      md5: 0a7e1cb70c9d51a16c2f67913a0dc93b
+      size: 19474
     - path: params.yaml
       hash: md5
       md5: a98e6e5ceef508d2b00a497046128ba8
@@ -53,23 +68,23 @@ stages:
     outs:
     - path: evaluation/plots/train_history.png
       hash: md5
-      md5: f9a74504e1dd12defc06f90615f2df11
-      size: 53953
+      md5: 65e8981d33c7eacb9a2c246180b26c82
+      size: 53295
     - path: model/air_temperature_regressor.bentomodel
       hash: md5
-      md5: d192131377a7bb45bdecf3eb908a1ffd
-      size: 7288
+      md5: 3faebda570be907b3b7a7cf6926340a7
+      size: 7304
   evaluate:
     cmd: "python src/evaluate.py model/air_temperature_regressor.bentomodel data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
-      md5: be147c9233c4e8d074449fb7a0a73939
-      size: 14961
+      md5: 4377ef5e5cebec44b4a3e030643ded83
+      size: 15060
     - path: model/air_temperature_regressor.bentomodel
       hash: md5
-      md5: d192131377a7bb45bdecf3eb908a1ffd
-      size: 7288
+      md5: 3faebda570be907b3b7a7cf6926340a7
+      size: 7304
     - path: src/evaluate.py
       hash: md5
       md5: c27e879ef6a6c2d330c595baf0f77841
@@ -77,24 +92,9 @@ stages:
     outs:
     - path: evaluation/metrics.json
       hash: md5
-      md5: b54c66cfca5feff02b91af7a0b8def3c
-      size: 30
+      md5: f5c2a84685b6e953c364926a9828748a
+      size: 29
     - path: evaluation/plots/prediction_preview.png
       hash: md5
-      md5: 9ba20bdf070e0d7df891a9e97d3150a0
-      size: 48285
-  ingestion:
-    cmd: "python src/ingestion.py  \"https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/puy/ogd-smn_puy_h_now.csv\"\
-      \  \"https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/puy/ogd-smn_puy_h_recent.csv\"\
-      \  \"data/intermediate/lastweek_17112025.csv\"\n"
-    deps:
-    - path: src/ingestion.py
-      hash: md5
-      md5: ecab0d4ca557d5513e8528dcab4f50b9
-      size: 3375
-    outs:
-    - path: data/intermediate
-      hash: md5
-      md5: 3182e983738474cabdfe4407003eaf20.dir
-      size: 26623
-      nfiles: 1
+      md5: 3da233b05fc541cbc792dca21363d366
+      size: 52382
