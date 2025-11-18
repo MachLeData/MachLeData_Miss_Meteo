@@ -7,6 +7,7 @@ stages:
     deps:
     - path: src/ingestion.py
       hash: md5
+<<<<<<< HEAD
       md5: 14927e0d7e7bdb65a2c8109efe565751
       size: 3541
     outs:
@@ -14,6 +15,15 @@ stages:
       hash: md5
       md5: 4de384fc67e8839dc98dbafa81e95908.dir
       size: 26119
+=======
+      md5: 6473dc7d0f08d1239696af02f9f2bfc2
+      size: 3640
+    outs:
+    - path: data/intermediate
+      hash: md5
+      md5: 4e54a435663d65ac65b607ff9c69c0ef.dir
+      size: 26621
+>>>>>>> ad2e9ef (fix(dvc): try a correction to pass the jobs)
       nfiles: 1
   prepare:
     cmd: "python src/prepare.py data/intermediate data/raw/ogd-smn_meta_parameters.csv
@@ -21,8 +31,13 @@ stages:
     deps:
     - path: data/raw
       hash: md5
+<<<<<<< HEAD
       md5: 7bb8f0a54bfc8bbc1f6e91b3ae83c462.dir
       size: 41262
+=======
+      md5: 888600e5bdfe9598366fdded58301472.dir
+      size: 41417
+>>>>>>> ad2e9ef (fix(dvc): try a correction to pass the jobs)
       nfiles: 1
     - path: params.yaml
       hash: md5
@@ -30,8 +45,13 @@ stages:
       size: 259
     - path: src/prepare.py
       hash: md5
+<<<<<<< HEAD
       md5: 742752e7fb73a6febcb76f47fcbe23c8
       size: 7337
+=======
+      md5: db95a05934cf0cff3ed543589376e790
+      size: 7517
+>>>>>>> ad2e9ef (fix(dvc): try a correction to pass the jobs)
     params:
       params.yaml:
         prepare:
@@ -39,20 +59,34 @@ stages:
     outs:
     - path: data/prepared
       hash: md5
+<<<<<<< HEAD
       md5: 77393ebc5bfb250600dad46aed08dc4b.dir
       size: 34728
+=======
+      md5: 83d64fd975cdfe5094c62b6688db7a7a.dir
+      size: 34534
+>>>>>>> ad2e9ef (fix(dvc): try a correction to pass the jobs)
       nfiles: 2
   train:
     cmd: "python src/train.py data/prepared/train.parquet data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
+<<<<<<< HEAD
       md5: 867ca13a237735f89ae6070d78c7b00e
       size: 14822
     - path: data/prepared/train.parquet
       hash: md5
       md5: 71d2aba3fc1f6c2548fdd6e0eb82266a
       size: 19906
+=======
+      md5: 4377ef5e5cebec44b4a3e030643ded83
+      size: 15060
+    - path: data/prepared/train.parquet
+      hash: md5
+      md5: 0a7e1cb70c9d51a16c2f67913a0dc93b
+      size: 19474
+>>>>>>> ad2e9ef (fix(dvc): try a correction to pass the jobs)
     - path: params.yaml
       hash: md5
       md5: 437b64e6f6bc136dc183fbd83fcbd9f7
@@ -68,23 +102,41 @@ stages:
     outs:
     - path: evaluation/plots/train_history.png
       hash: md5
+<<<<<<< HEAD
       md5: 1a4bc38b93e8f5b8d6d12cb4bcd79d8e
       size: 55352
     - path: model/air_temperature_regressor.bentomodel
       hash: md5
       md5: 139d987776b73b8e3596e485489f485f
       size: 7340
+=======
+      md5: 65e8981d33c7eacb9a2c246180b26c82
+      size: 53295
+    - path: model/air_temperature_regressor.bentomodel
+      hash: md5
+      md5: 3faebda570be907b3b7a7cf6926340a7
+      size: 7304
+>>>>>>> ad2e9ef (fix(dvc): try a correction to pass the jobs)
   evaluate:
     cmd: "python src/evaluate.py model/air_temperature_regressor.bentomodel data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
+<<<<<<< HEAD
       md5: 867ca13a237735f89ae6070d78c7b00e
       size: 14822
     - path: model/air_temperature_regressor.bentomodel
       hash: md5
       md5: 139d987776b73b8e3596e485489f485f
       size: 7340
+=======
+      md5: 4377ef5e5cebec44b4a3e030643ded83
+      size: 15060
+    - path: model/air_temperature_regressor.bentomodel
+      hash: md5
+      md5: 3faebda570be907b3b7a7cf6926340a7
+      size: 7304
+>>>>>>> ad2e9ef (fix(dvc): try a correction to pass the jobs)
     - path: src/evaluate.py
       hash: md5
       md5: 2e62d74aaf647593eb9f7d5ed464f319
@@ -92,9 +144,18 @@ stages:
     outs:
     - path: evaluation/metrics.json
       hash: md5
+<<<<<<< HEAD
       md5: 42c09da8ab74856cbed300482a5fbcb5
       size: 30
     - path: evaluation/plots/prediction_preview.png
       hash: md5
       md5: f266c9fb0ddd401c86012080487f2cc0
       size: 48483
+=======
+      md5: f5c2a84685b6e953c364926a9828748a
+      size: 29
+    - path: evaluation/plots/prediction_preview.png
+      hash: md5
+      md5: 3da233b05fc541cbc792dca21363d366
+      size: 52382
+>>>>>>> ad2e9ef (fix(dvc): try a correction to pass the jobs)
