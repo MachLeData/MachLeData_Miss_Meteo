@@ -7,7 +7,6 @@ stages:
     deps:
     - path: src/ingestion.py
       hash: md5
-<<<<<<< HEAD
       md5: 14927e0d7e7bdb65a2c8109efe565751
       size: 3541
     outs:
@@ -16,15 +15,6 @@ stages:
       md5: c59bdcdb2761ce451a0b439c7a536f90.dir
       size: 26418
       nfiles: 1
-=======
-      md5: b694139c1bab9f7d2e433deb351595e1
-      size: 3282
-    outs:
-    - path: data/intermediate
-      hash: md5
-      md5: cf01619eb30980b66643658d15d6e4f4
-      size: 26318
->>>>>>> b555a52 (Commit changes in dvc.lock)
   prepare:
     cmd: "python src/prepare.py data/intermediate data/raw/ogd-smn_meta_parameters.csv
       data/prepared\n"
@@ -36,17 +26,12 @@ stages:
       nfiles: 1
     - path: params.yaml
       hash: md5
-      md5: 437b64e6f6bc136dc183fbd83fcbd9f7
-      size: 259
+      md5: a98e6e5ceef508d2b00a497046128ba8
+      size: 273
     - path: src/prepare.py
       hash: md5
-<<<<<<< HEAD
       md5: 742752e7fb73a6febcb76f47fcbe23c8
       size: 7337
-=======
-      md5: 71338af499af6a847c8d1a03a340fd96
-      size: 6207
->>>>>>> b555a52 (Commit changes in dvc.lock)
     params:
       params.yaml:
         prepare:
@@ -54,46 +39,32 @@ stages:
     outs:
     - path: data/prepared
       hash: md5
-<<<<<<< HEAD
       md5: c3937aeb5f560f20205d5ab54f9df74c.dir
       size: 34616
-=======
-      md5: 4e73fe266bc902429423aa78eb5e985b.dir
-      size: 34568
->>>>>>> b555a52 (Commit changes in dvc.lock)
       nfiles: 2
   train:
     cmd: "python src/train.py data/prepared/train.parquet data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
-<<<<<<< HEAD
       md5: 46cf0302f2f8e9ab41359953202d8921
       size: 14968
     - path: data/prepared/train.parquet
       hash: md5
       md5: f1f9c8397c2f831b112934d0b93fc9ad
       size: 19648
-=======
-      md5: dfa48a634eb3030f410616939704b0b2
-      size: 15168
-    - path: data/prepared/train.parquet
-      hash: md5
-      md5: 27bc02863977be87913214da0bc355fe
-      size: 19400
->>>>>>> b555a52 (Commit changes in dvc.lock)
     - path: params.yaml
       hash: md5
-      md5: 437b64e6f6bc136dc183fbd83fcbd9f7
-      size: 259
+      md5: a98e6e5ceef508d2b00a497046128ba8
+      size: 273
     - path: src/train.py
       hash: md5
       md5: 56ed64b920a424fcab61122418e623fd
       size: 4922
     - path: src/utils/seed.py
       hash: md5
-      md5: 75b1f88de7bb9fe37a970efc4a462d8d
-      size: 168
+      md5: f035ec37efd24c9d56d5226ef3b429c3
+      size: 175
     outs:
     - path: evaluation/plots/train_history.png
       hash: md5
@@ -116,8 +87,8 @@ stages:
       size: 7332
     - path: src/evaluate.py
       hash: md5
-      md5: 2e62d74aaf647593eb9f7d5ed464f319
-      size: 2553
+      md5: c27e879ef6a6c2d330c595baf0f77841
+      size: 2636
     outs:
     - path: evaluation/metrics.json
       hash: md5
