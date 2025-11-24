@@ -27,10 +27,12 @@ jobs:
         run: pip install --requirement requirements-freeze.txt
 
       - name: Prepare, train and evaluate
-        run: dvc repro --pull
+        run: |
+          dvc repro --pull 
+          dvc push 
 
       - name: Commit changes in dvc.lock
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: Commit changes in dvc.lock
+          commit_message: "feat(dvc): update dvc.lock"
           file_pattern: dvc.lock
