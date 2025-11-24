@@ -7,13 +7,14 @@ stages:
     deps:
     - path: src/ingestion.py
       hash: md5
-      md5: b694139c1bab9f7d2e433deb351595e1
-      size: 3282
+      md5: 14927e0d7e7bdb65a2c8109efe565751
+      size: 3541
     outs:
     - path: data/intermediate
       hash: md5
-      md5: 9f008f6745fca3e96cde8c9ad69fc38d
-      size: 26157
+      md5: cae71dd26f5785d899c5293af5b4ffc9.dir
+      size: 26281
+      nfiles: 1
   prepare:
     cmd: "python src/prepare.py data/intermediate data/raw/ogd-smn_meta_parameters.csv
       data/prepared\n"
@@ -29,8 +30,8 @@ stages:
       size: 259
     - path: src/prepare.py
       hash: md5
-      md5: 71338af499af6a847c8d1a03a340fd96
-      size: 6207
+      md5: 742752e7fb73a6febcb76f47fcbe23c8
+      size: 7337
     params:
       params.yaml:
         prepare:
@@ -38,20 +39,20 @@ stages:
     outs:
     - path: data/prepared
       hash: md5
-      md5: c7caeae2fbcf607886ff1bb66b046f91.dir
-      size: 34451
+      md5: e95468677b0a738e0b31ef497ae1f8ce.dir
+      size: 34559
       nfiles: 2
   train:
     cmd: "python src/train.py data/prepared/train.parquet data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
-      md5: 5014daf90ffa63384f8258a58db313a1
-      size: 15133
+      md5: 650a155256b1429548562176f8ee53b3
+      size: 14841
     - path: data/prepared/train.parquet
       hash: md5
-      md5: 39b7f2f69b490e075993f1d9f855a35c
-      size: 19318
+      md5: 2583495d3fb19a3b9498188611a49b5b
+      size: 19718
     - path: params.yaml
       hash: md5
       md5: 437b64e6f6bc136dc183fbd83fcbd9f7
@@ -67,23 +68,23 @@ stages:
     outs:
     - path: evaluation/plots/train_history.png
       hash: md5
-      md5: 15e98e8277503b08e87913efb52f80c2
-      size: 55020
+      md5: eb887964d5c11e4e1b4a7afdd55f22ae
+      size: 50818
     - path: model/air_temperature_regressor.bentomodel
       hash: md5
-      md5: 6e50f273529539ae743b7fad236164c3
-      size: 7276
+      md5: 5e0da4a9222676b8a0164f2f68bf747b
+      size: 7304
   evaluate:
     cmd: "python src/evaluate.py model/air_temperature_regressor.bentomodel data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
-      md5: 5014daf90ffa63384f8258a58db313a1
-      size: 15133
+      md5: 650a155256b1429548562176f8ee53b3
+      size: 14841
     - path: model/air_temperature_regressor.bentomodel
       hash: md5
-      md5: 6e50f273529539ae743b7fad236164c3
-      size: 7276
+      md5: 5e0da4a9222676b8a0164f2f68bf747b
+      size: 7304
     - path: src/evaluate.py
       hash: md5
       md5: 2e62d74aaf647593eb9f7d5ed464f319
@@ -91,9 +92,9 @@ stages:
     outs:
     - path: evaluation/metrics.json
       hash: md5
-      md5: 40bc047a75bf0aaeff27419244865f00
-      size: 30
+      md5: ee9ff3db9dac2560ab42de3e2d46b32f
+      size: 29
     - path: evaluation/plots/prediction_preview.png
       hash: md5
-      md5: 1a9104ca03365781e097ea9f8d4489da
-      size: 58026
+      md5: a776c2785c41b7e9fd2fc7fd9ae94973
+      size: 46387
