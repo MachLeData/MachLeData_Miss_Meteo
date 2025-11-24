@@ -1,22 +1,37 @@
 schema: '2.0'
 stages:
+  ingestion:
+    cmd: "python src/ingestion.py  \"https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/puy/ogd-smn_puy_h_now.csv\"\
+      \  \"https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/puy/ogd-smn_puy_h_recent.csv\"\
+      \  \"data/intermediate\"\n"
+    deps:
+    - path: src/ingestion.py
+      hash: md5
+      md5: 14927e0d7e7bdb65a2c8109efe565751
+      size: 3541
+    outs:
+    - path: data/intermediate
+      hash: md5
+      md5: cae71dd26f5785d899c5293af5b4ffc9.dir
+      size: 26281
+      nfiles: 1
   prepare:
-    cmd: "python src/prepare.py data/raw/ogd-smn_puy_h_recent.csv data/raw/ogd-smn_meta_parameters.csv
+    cmd: "python src/prepare.py data/intermediate data/raw/ogd-smn_meta_parameters.csv
       data/prepared\n"
     deps:
     - path: data/raw
       hash: md5
-      md5: a9391695a206135bb6c4675e76d03070.dir
-      size: 1052734
-      nfiles: 4
+      md5: 7bb8f0a54bfc8bbc1f6e91b3ae83c462.dir
+      size: 41262
+      nfiles: 1
     - path: params.yaml
       hash: md5
       md5: 437b64e6f6bc136dc183fbd83fcbd9f7
       size: 259
     - path: src/prepare.py
       hash: md5
-      md5: ba12554f2f28739e160ee9fb8c9d3573
-      size: 5983
+      md5: 742752e7fb73a6febcb76f47fcbe23c8
+      size: 7337
     params:
       params.yaml:
         prepare:
@@ -24,28 +39,28 @@ stages:
     outs:
     - path: data/prepared
       hash: md5
-      md5: 95c5fcf4ecc0f933b5e7987f5a412f0b.dir
-      size: 212990
+      md5: e95468677b0a738e0b31ef497ae1f8ce.dir
+      size: 34559
       nfiles: 2
   train:
     cmd: "python src/train.py data/prepared/train.parquet data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
-      md5: af18a7f0c0a8b2d65a1961148069ee2d
-      size: 58245
+      md5: 650a155256b1429548562176f8ee53b3
+      size: 14841
     - path: data/prepared/train.parquet
       hash: md5
-      md5: 13a0b49b94e02abf5ec17f40fc876ff1
-      size: 154745
+      md5: 2583495d3fb19a3b9498188611a49b5b
+      size: 19718
     - path: params.yaml
       hash: md5
       md5: 437b64e6f6bc136dc183fbd83fcbd9f7
       size: 259
     - path: src/train.py
       hash: md5
-      md5: bc9383170ab663ae70802c9af67bc76b
-      size: 4949
+      md5: 56ed64b920a424fcab61122418e623fd
+      size: 4922
     - path: src/utils/seed.py
       hash: md5
       md5: 75b1f88de7bb9fe37a970efc4a462d8d
@@ -53,23 +68,23 @@ stages:
     outs:
     - path: evaluation/plots/train_history.png
       hash: md5
-      md5: c62ae5c68b4d4a69d9c68d312312a6df
-      size: 43117
+      md5: eb887964d5c11e4e1b4a7afdd55f22ae
+      size: 50818
     - path: model/air_temperature_regressor.bentomodel
       hash: md5
-      md5: 0f1aba7ba8d2bc3a7eb7f330ad607d1c
-      size: 7268
+      md5: 5e0da4a9222676b8a0164f2f68bf747b
+      size: 7304
   evaluate:
     cmd: "python src/evaluate.py model/air_temperature_regressor.bentomodel data/prepared/test.parquet\n"
     deps:
     - path: data/prepared/test.parquet
       hash: md5
-      md5: af18a7f0c0a8b2d65a1961148069ee2d
-      size: 58245
+      md5: 650a155256b1429548562176f8ee53b3
+      size: 14841
     - path: model/air_temperature_regressor.bentomodel
       hash: md5
-      md5: 0f1aba7ba8d2bc3a7eb7f330ad607d1c
-      size: 7268
+      md5: 5e0da4a9222676b8a0164f2f68bf747b
+      size: 7304
     - path: src/evaluate.py
       hash: md5
       md5: 2e62d74aaf647593eb9f7d5ed464f319
@@ -77,9 +92,9 @@ stages:
     outs:
     - path: evaluation/metrics.json
       hash: md5
-      md5: 2427fd7de24f780dfd362d96214cbca6
-      size: 30
+      md5: ee9ff3db9dac2560ab42de3e2d46b32f
+      size: 29
     - path: evaluation/plots/prediction_preview.png
       hash: md5
-      md5: b0d3777a54c89af51a1ae2892877d752
-      size: 116493
+      md5: a776c2785c41b7e9fd2fc7fd9ae94973
+      size: 46387
