@@ -7,10 +7,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-<<<<<<< HEAD
 from zoneinfo import ZoneInfo
-=======
->>>>>>> ef1d799 (fix(data): separated ingestion from the API and prepare data)
 
 # ---- téléchargement d'un CSV MeteoSwiss ----
 def download_csv(url: str) -> pd.DataFrame | None:
@@ -57,7 +54,6 @@ def process_data(df_recent: pd.DataFrame, df_historical: pd.DataFrame,
     df = df[(df["ts_utc"] > start_utc) & (df["ts_utc"] <= end_utc)].copy()
     return df.reset_index(drop=True)
 
-<<<<<<< HEAD
 def build_output_path(output_dir: str, end_utc: datetime) -> Path:
     tz = ZoneInfo("Europe/Zurich")
     local_dt = end_utc.astimezone(tz)
@@ -65,8 +61,6 @@ def build_output_path(output_dir: str, end_utc: datetime) -> Path:
     filename = f"lastweek_{date_str}.csv"
     return Path(output_dir) / filename
 
-=======
->>>>>>> ef1d799 (fix(data): separated ingestion from the API and prepare data)
 def main():
     # --- args : RECENT_URL HISTORICAL_URL OUTPUT_CSV ---
     if len(sys.argv) != 4:
@@ -75,11 +69,7 @@ def main():
 
     recent_url = sys.argv[1]
     historical_url = sys.argv[2]
-<<<<<<< HEAD
     output_dir = sys.argv[3]
-=======
-    output_csv = sys.argv[3]
->>>>>>> ef1d799 (fix(data): separated ingestion from the API and prepare data)
 
     # ---- fenêtre : dernière semaine glissante ----
     end_utc = datetime.now(timezone.utc)
@@ -98,23 +88,13 @@ def main():
         print(f"Processing error: {e}", file=sys.stderr)
         sys.exit(1)
 
-<<<<<<< HEAD
     output_path = build_output_path(output_dir, end_utc)
 
     # Écriture CSV (crée le dossier au besoin)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df_last_week.to_csv(output_path, index=False)
     print(f"Écrit: {output_path} ({len(df_last_week)} lignes)")
-=======
-    # Affichages similaires au notebook
-    print(df_last_week.head())
-    print(df_last_week.tail())
-
-    # Écriture CSV (crée le dossier au besoin)
-    Path(output_csv).parent.mkdir(parents=True, exist_ok=True)
-    df_last_week.to_csv(output_csv, index=False)
-    print(f"Écrit: {output_csv} ({len(df_last_week)} lignes)")
->>>>>>> ef1d799 (fix(data): separated ingestion from the API and prepare data)
+    output_path = build_output_path(output_dir, end_utc)
 
 if __name__ == "__main__":
     main()
