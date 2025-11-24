@@ -94,7 +94,6 @@ def main():
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df_last_week.to_csv(output_path, index=False)
     print(f"Écrit: {output_path} ({len(df_last_week)} lignes)")
-    output_path = build_output_path(output_dir, end_utc)
 
 if __name__ == "__main__":
     main()
