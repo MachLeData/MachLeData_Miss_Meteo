@@ -3,6 +3,9 @@ name: continuous_learning
 on:
 #  schedule:
 #    - cron: "0 9 * * 1"     # Every Monday at 09:00 UTC
+  push:
+    branches:
+      - '**'   # Run on any push (to test the workflow)
   workflow_dispatch:         # Allow manual trigger
 
 
