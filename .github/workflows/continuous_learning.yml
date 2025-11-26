@@ -31,8 +31,7 @@ jobs:
         run: pip install --requirement requirements-freeze.txt
 
       - name: Ingest new data
-        run: dvc ingestion # TODO: add the correct command to download new data
-
+        run: python src/ingestion.py
       - name: Add changes to git
         run: git add .
 
