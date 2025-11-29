@@ -16,22 +16,22 @@ stages:
       size: 26418
       nfiles: 1
   prepare:
-    cmd: "python src/prepare.py data/intermediate data/raw/ogd-smn_meta_parameters.csv
-      data/prepared\n"
+    cmd: "python src/prepare.py data/raw/ogd-smn_puy_h_recent.csv data/intermediate
+      data/raw/ogd-smn_meta_parameters.csv data/prepared\n"
     deps:
     - path: data/raw
       hash: md5
-      md5: 7bb8f0a54bfc8bbc1f6e91b3ae83c462.dir
-      size: 41262
-      nfiles: 1
+      md5: c59c02afcdd7af6a5c01f1b47362ba39.dir
+      size: 1046586
+      nfiles: 3
     - path: params.yaml
       hash: md5
-      md5: 437b64e6f6bc136dc183fbd83fcbd9f7
-      size: 259
+      md5: d2ac6996375f9fb974091b4ff0d077f5
+      size: 227
     - path: src/prepare.py
       hash: md5
-      md5: 742752e7fb73a6febcb76f47fcbe23c8
-      size: 7337
+      md5: ef917176979d48ecf3b4643f1d77bbe8
+      size: 8511
     params:
       params.yaml:
         prepare:
@@ -43,9 +43,10 @@ stages:
       size: 34616
       nfiles: 2
   train:
-    cmd: "python src/train.py data/prepared/train.parquet data/prepared/test.parquet\n"
+    cmd: "python src/train.py data/prepared/train_historical.parquet data/prepared/val_historical.parquet
+      data/prepared/train_finetuning.parquet data/prepared/val_finetuning.parquet\n"
     deps:
-    - path: data/prepared/test.parquet
+    - path: data/prepared/train_finetuning.parquet
       hash: md5
       md5: 46cf0302f2f8e9ab41359953202d8921
       size: 14968
@@ -55,12 +56,12 @@ stages:
       size: 19648
     - path: params.yaml
       hash: md5
-      md5: 437b64e6f6bc136dc183fbd83fcbd9f7
-      size: 259
+      md5: d2ac6996375f9fb974091b4ff0d077f5
+      size: 227
     - path: src/train.py
       hash: md5
-      md5: 56ed64b920a424fcab61122418e623fd
-      size: 4922
+      md5: 205a73ed528c2b3c68bf0563d27ab7a1
+      size: 5813
     - path: src/utils/seed.py
       hash: md5
       md5: 75b1f88de7bb9fe37a970efc4a462d8d
@@ -75,9 +76,10 @@ stages:
       md5: 2d5b1468c554906b9e5c42e1ae0cda3a
       size: 7332
   evaluate:
-    cmd: "python src/evaluate.py model/air_temperature_regressor.bentomodel data/prepared/test.parquet\n"
+    cmd: "python src/evaluate.py model/model.bentomodel data/prepared/val_historical.parquet
+      data/prepared/val_finetuning.parquet\n"
     deps:
-    - path: data/prepared/test.parquet
+    - path: data/prepared/val_finetuning.parquet
       hash: md5
       md5: 46cf0302f2f8e9ab41359953202d8921
       size: 14968
@@ -87,8 +89,8 @@ stages:
       size: 7332
     - path: src/evaluate.py
       hash: md5
-      md5: 2e62d74aaf647593eb9f7d5ed464f319
-      size: 2553
+      md5: 34cb91fb1f18fdef49b4e555c5b3c562
+      size: 9680
     outs:
     - path: evaluation/metrics.json
       hash: md5

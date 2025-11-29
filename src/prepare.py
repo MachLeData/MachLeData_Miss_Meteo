@@ -38,27 +38,39 @@ def pick_latest_lastweek_csv(folder: Path) -> Path:
     return latest_file
 
 def main() -> None:
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 5:
         print("Arguments error. Usage:\n")
-        print("\tpython3 prepare.py <raw-dataset-folder> <raw-metadata-file> <prepared-dataset-folder>\n")
+        print("\tpython3 prepare.py <raw-dataset-file> <finetuning-dataset-folder> <raw-metadata-file> <prepared-dataset-folder>\n")
         exit(1)
 
     # Load parameters
     prepare_params = yaml.safe_load(open("params.yaml"))["prepare"]
     separator_train_val = prepare_params["separator_train_val"]
 
-    raw_dataset_folder = Path(sys.argv[1])
-    raw_metadata_file = Path(sys.argv[2])
-    prepared_dataset_folder = Path(sys.argv[3])
+    raw_dataset_file = Path(sys.argv[1])
+    finetuning_dataset_folder = Path(sys.argv[2])
+    raw_metadata_file = Path(sys.argv[3])
+    prepared_dataset_folder = Path(sys.argv[4])
 
     if not prepared_dataset_folder.exists():
         prepared_dataset_folder.mkdir(parents=True)
 
     # Read data
-    raw_dataset_file = pick_latest_lastweek_csv(raw_dataset_folder)
-    meteo_df = pd.read_csv(raw_dataset_file, sep=",")
+    historical_meteo_df = pd.read_csv(raw_dataset_file, sep=";")
+    historical_meteo_df['historical'] = True
 
-    metadata_df = pd.read_csv(raw_metadata_file, encoding='ISO-8859-1', sep=";",on_bad_lines='skip')
+    finetuning_dataset_file = pick_latest_lastweek_csv(finetuning_dataset_folder)
+    meteo_df = pd.read_csv(finetuning_dataset_file, sep=",")
+
+    # Combine historical and fine-tuning files
+    meteo_df['historical'] = False
+
+    meteo_df = pd.concat([
+        meteo_df,
+        historical_meteo_df
+    ], axis=0)
+
+    metadata_df = pd.read_csv(raw_metadata_file, encoding='ISO-8859-1', sep=";", on_bad_lines='skip')
     metadata_df = metadata_df.set_index("parameter_shortname")
 
     # Rename columns abbreviation to parameter description
@@ -75,8 +87,10 @@ def main() -> None:
 
     # Prepare data
     target_column = 'Air temperature 2 m above ground; hourly mean'
-    feature_columns = meteo_df.drop(['station_abbr'], axis=1).columns
+    feature_columns = meteo_df.drop(['station_abbr', 'historical'], axis=1).columns
+
     features_df = meteo_df[feature_columns]
+
     # Remove highly similar features
     features_df = features_df.drop([
         'Air temperature 2 m above ground; hourly minimum',
@@ -155,23 +169,39 @@ def main() -> None:
 
     # Fix columns names
     features_df = features_df.rename({col: transform_column_name(col) for col in features_df.columns}, axis=1)
-
-    print(features_df)
-    imputer = KNNImputer(n_neighbors=3)
+    imputer = KNNImputer(n_neighbors=3) # Maybe a data leak here because we do it before splitting
     features_df.loc[:] = imputer.fit_transform(features_df)
+
+    historical = meteo_df['historical']
 
     meteo_df = pd.concat([
         meteo_df[['reference_timestamp', target_column]].rename({target_column: 'air_temperature'}, axis=1),
         features_df.shift(24).rename({col: col + " (lag 24)" for col in features_df.columns}, axis=1),
     ], axis=1)
 
+    # Put back the historical column
+    meteo_df['historical'] = historical
+
     # Prepare test and train
     meteo_df = meteo_df.dropna(axis=0)
-    meteo_df_train = meteo_df.iloc[:int(len(meteo_df)*separator_train_val)]
-    meteo_df_val = meteo_df.iloc[int(len(meteo_df)*separator_train_val):]
+
+    # Separate historical/finetuning
+    historical_meteo_df = meteo_df[meteo_df['historical']]
+    finetuning_meteo_df = meteo_df[~meteo_df['historical']]
+
+    historical_meteo_df_train = historical_meteo_df.iloc[:int(len(historical_meteo_df)*separator_train_val)]
+    historical_meteo_df_val = historical_meteo_df.iloc[int(len(historical_meteo_df)*separator_train_val):]
+
+    finetuning_meteo_df_train = finetuning_meteo_df.iloc[:int(len(finetuning_meteo_df)*separator_train_val)]
+    finetuning_meteo_df_val = finetuning_meteo_df.iloc[int(len(finetuning_meteo_df)*separator_train_val):]    
 
     # Export to parquet
-    for name, df in {"train": meteo_df_train, "test": meteo_df_val}.items():
+    for name, df in {
+        "train_historical": historical_meteo_df_train,
+        "val_historical": historical_meteo_df_val,
+        "train_finetuning": finetuning_meteo_df_train,
+        "val_finetuning": finetuning_meteo_df_val,        
+    }.items():
         df.to_parquet(
             prepared_dataset_folder / f"{name}.parquet",
             index=False, engine="pyarrow", compression="snappy"
