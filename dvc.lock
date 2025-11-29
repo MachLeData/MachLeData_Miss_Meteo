@@ -12,26 +12,26 @@ stages:
     outs:
     - path: data/intermediate
       hash: md5
-      md5: cae71dd26f5785d899c5293af5b4ffc9.dir
-      size: 26281
+      md5: e9169e8a4234e6e245531eed3eb3cce2.dir
+      size: 26041
       nfiles: 1
   prepare:
-    cmd: "python src/prepare.py data/intermediate data/raw/ogd-smn_meta_parameters.csv
-      data/prepared\n"
+    cmd: "python src/prepare.py data/raw/ogd-smn_puy_h_recent.csv data/intermediate
+      data/raw/ogd-smn_meta_parameters.csv data/prepared\n"
     deps:
     - path: data/raw
       hash: md5
-      md5: 7bb8f0a54bfc8bbc1f6e91b3ae83c462.dir
-      size: 41262
-      nfiles: 1
+      md5: c59c02afcdd7af6a5c01f1b47362ba39.dir
+      size: 1046586
+      nfiles: 3
     - path: params.yaml
       hash: md5
-      md5: 437b64e6f6bc136dc183fbd83fcbd9f7
-      size: 259
+      md5: d2ac6996375f9fb974091b4ff0d077f5
+      size: 227
     - path: src/prepare.py
       hash: md5
-      md5: 742752e7fb73a6febcb76f47fcbe23c8
-      size: 7337
+      md5: ef917176979d48ecf3b4643f1d77bbe8
+      size: 8511
     params:
       params.yaml:
         prepare:
@@ -39,28 +39,37 @@ stages:
     outs:
     - path: data/prepared
       hash: md5
-      md5: e95468677b0a738e0b31ef497ae1f8ce.dir
-      size: 34559
-      nfiles: 2
+      md5: ddfd2e34c03155e1b95775f1b17b498c.dir
+      size: 249581
+      nfiles: 4
   train:
-    cmd: "python src/train.py data/prepared/train.parquet data/prepared/test.parquet\n"
+    cmd: "python src/train.py data/prepared/train_historical.parquet data/prepared/val_historical.parquet
+      data/prepared/train_finetuning.parquet data/prepared/val_finetuning.parquet\n"
     deps:
-    - path: data/prepared/test.parquet
+    - path: data/prepared/train_finetuning.parquet
       hash: md5
-      md5: 650a155256b1429548562176f8ee53b3
-      size: 14841
-    - path: data/prepared/train.parquet
+      md5: bcdb57fe946bdf1af8802968fde3cfa3
+      size: 20509
+    - path: data/prepared/train_historical.parquet
       hash: md5
-      md5: 2583495d3fb19a3b9498188611a49b5b
-      size: 19718
+      md5: b106a53c5c68f2bcb63bf8ea802b238d
+      size: 154874
+    - path: data/prepared/val_finetuning.parquet
+      hash: md5
+      md5: a1f69f39737e0156956a263bdbe5a42c
+      size: 15448
+    - path: data/prepared/val_historical.parquet
+      hash: md5
+      md5: bc41735f6664108857b215e4daa34e40
+      size: 58750
     - path: params.yaml
       hash: md5
-      md5: 437b64e6f6bc136dc183fbd83fcbd9f7
-      size: 259
+      md5: d2ac6996375f9fb974091b4ff0d077f5
+      size: 227
     - path: src/train.py
       hash: md5
-      md5: 56ed64b920a424fcab61122418e623fd
-      size: 4922
+      md5: 205a73ed528c2b3c68bf0563d27ab7a1
+      size: 5813
     - path: src/utils/seed.py
       hash: md5
       md5: 75b1f88de7bb9fe37a970efc4a462d8d
@@ -68,33 +77,42 @@ stages:
     outs:
     - path: evaluation/plots/train_history.png
       hash: md5
-      md5: eb887964d5c11e4e1b4a7afdd55f22ae
-      size: 50818
-    - path: model/air_temperature_regressor.bentomodel
+      md5: 6d07a28e94404ee54d5db824668bf30d
+      size: 30006
+    - path: model/model.bentomodel
       hash: md5
-      md5: 5e0da4a9222676b8a0164f2f68bf747b
-      size: 7304
+      md5: ffcf4dbae7eafd23512cee422d6b8c9a
+      size: 7264
   evaluate:
-    cmd: "python src/evaluate.py model/air_temperature_regressor.bentomodel data/prepared/test.parquet\n"
+    cmd: "python src/evaluate.py model/model.bentomodel data/prepared/val_historical.parquet
+      data/prepared/val_finetuning.parquet\n"
     deps:
-    - path: data/prepared/test.parquet
+    - path: data/prepared/val_finetuning.parquet
       hash: md5
-      md5: 650a155256b1429548562176f8ee53b3
-      size: 14841
-    - path: model/air_temperature_regressor.bentomodel
+      md5: a1f69f39737e0156956a263bdbe5a42c
+      size: 15448
+    - path: data/prepared/val_historical.parquet
       hash: md5
-      md5: 5e0da4a9222676b8a0164f2f68bf747b
-      size: 7304
+      md5: bc41735f6664108857b215e4daa34e40
+      size: 58750
+    - path: model/model.bentomodel
+      hash: md5
+      md5: ffcf4dbae7eafd23512cee422d6b8c9a
+      size: 7264
     - path: src/evaluate.py
       hash: md5
-      md5: 2e62d74aaf647593eb9f7d5ed464f319
-      size: 2553
+      md5: 34cb91fb1f18fdef49b4e555c5b3c562
+      size: 9680
     outs:
     - path: evaluation/metrics.json
       hash: md5
-      md5: ee9ff3db9dac2560ab42de3e2d46b32f
-      size: 29
-    - path: evaluation/plots/prediction_preview.png
+      md5: 63229dd791a524cf708428e3eb7339d7
+      size: 547
+    - path: evaluation/plots/finetuned_model_finetuning_validation.png
       hash: md5
-      md5: a776c2785c41b7e9fd2fc7fd9ae94973
-      size: 46387
+      md5: de72ae3d0550606202b0b67ff549279b
+      size: 47702
+    - path: evaluation/plots/finetuned_model_historical_validation.png
+      hash: md5
+      md5: 50f2f616c4e3deba96e3e5f9b622918a
+      size: 113551

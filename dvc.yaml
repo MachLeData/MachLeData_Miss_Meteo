@@ -12,6 +12,7 @@ stages:
   prepare:
     cmd: >
       python src/prepare.py
+      data/raw/ogd-smn_puy_h_recent.csv
       data/intermediate
       data/raw/ogd-smn_meta_parameters.csv
       data/prepared
@@ -26,27 +27,34 @@ stages:
   train:
     cmd: >
       python src/train.py
-      data/prepared/train.parquet
-      data/prepared/test.parquet
+      data/prepared/train_historical.parquet
+      data/prepared/val_historical.parquet
+      data/prepared/train_finetuning.parquet
+      data/prepared/val_finetuning.parquet
     deps:
       - params.yaml
       - src/train.py
       - src/utils/seed.py
-      - data/prepared/train.parquet
-      - data/prepared/test.parquet
+      - data/prepared/train_historical.parquet
+      - data/prepared/val_historical.parquet
+      - data/prepared/train_finetuning.parquet
+      - data/prepared/val_finetuning.parquet
     outs:
-      - model/air_temperature_regressor.bentomodel
+      - model/model.bentomodel
       - evaluation/plots/train_history.png
   evaluate:
     cmd: >
       python src/evaluate.py
-      model/air_temperature_regressor.bentomodel
-      data/prepared/test.parquet
+      model/model.bentomodel
+      data/prepared/val_historical.parquet
+      data/prepared/val_finetuning.parquet
     deps:
       - src/evaluate.py
-      - model/air_temperature_regressor.bentomodel
-      - data/prepared/test.parquet
+      - model/model.bentomodel
+      - data/prepared/val_historical.parquet
+      - data/prepared/val_finetuning.parquet
     plots:
-      - evaluation/plots/prediction_preview.png
+      - evaluation/plots/finetuned_model_finetuning_validation.png
+      - evaluation/plots/finetuned_model_historical_validation.png
     outs:
       - evaluation/metrics.json
