@@ -65,9 +65,9 @@ def plot_training_history(history, ax=None):
     ax.grid(True, linestyle="--", alpha=0.6)
 
 def main() -> None:
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 5:
         print("Arguments error. Usage:\n")
-        print("\tpython3 train.py <train_dataframe_file> <val_dataframe_file>\n")
+        print("\tpython3 train.py <val_historical_dataframe_file> <val_finetuning_dataframe_file>\n")
         exit(1)
 
     # Load parameters
@@ -82,7 +82,6 @@ def main() -> None:
     loss = train_params["loss"]
     n_epochs = train_params["n_epochs"]
     batch_size = train_params["batch_size"]
-    reload_previous_model = train_params["reload_previous_model"]
 
     evaluation_folder = Path("evaluation")
     plots_folder = Path("plots")
@@ -96,25 +95,34 @@ def main() -> None:
     set_seed(seed)
 
     # Load train and validation datasets
-    train_df = pd.read_parquet(Path(sys.argv[1]))
-    val_df = pd.read_parquet(Path(sys.argv[2]))
+    train_historical_df = pd.read_parquet(Path(sys.argv[1])) # TODO: maybe remove it if we don't plan to use it here
+    val_historical_df = pd.read_parquet(Path(sys.argv[2])) # TODO: maybe remove it if we don't plan to use it here  
+    train_finetuning_df = pd.read_parquet(Path(sys.argv[3]))
+    val_finetuning_df = pd.read_parquet(Path(sys.argv[4]))
+ 
+     # Shuffle train
+    train_df = train_finetuning_df.sample(frac=1)
 
-    # Shuffle train
-    train_df = train_df.sample(frac=1)
-
-    train_features = train_df.drop(["reference_timestamp", "air_temperature"], axis=1)
+    train_features = train_df.drop(["reference_timestamp", "air_temperature", "historical"], axis=1)
     train_target = train_df['air_temperature']
 
-    val_features = val_df.drop(["reference_timestamp", "air_temperature"], axis=1)
-    val_target = val_df['air_temperature']
+    val_features = val_finetuning_df.drop(["reference_timestamp", "air_temperature", "historical"], axis=1)
+    val_target = val_finetuning_df['air_temperature']
 
-    # Train model
-    if reload_previous_model:
-        try:
-            model = bentoml.keras.load_model("air_temperature_regressor")
-        except:
-            raise Exception(f"Load previous model (air_temperature_regressor) failed!")
-    else:
+    # historical dataframe
+    train_historical_df = train_historical_df.sample(frac=1)
+    
+    train_historical_features = train_historical_df.drop(["reference_timestamp", "air_temperature", "historical"], axis=1)
+    train_historical_target = train_historical_df['air_temperature']
+
+    val_historical_features = val_historical_df.drop(["reference_timestamp", "air_temperature", "historical"], axis=1)
+    val_historical_target = val_historical_df['air_temperature']    
+
+    # Fine-tune model
+    try:
+        model = bentoml.keras.load_model('baseline_model')
+    except:
+        print(f"Loading baseline model failed! Training from scratch...")
         model = create_model(
             input_shape=train_features.shape[1:],
             n_neurons1=n_neurons1,
@@ -125,9 +133,16 @@ def main() -> None:
             learning_rate=learning_rate,
             loss=loss,
         )
+        
+        train_features = train_historical_features
+        train_target = train_historical_target
+        val_features = val_historical_features
+        val_target = val_historical_target
 
+    # FIXME: should we freeze some weights?
     print(model.summary())
 
+    # Fine-tuning model
     history = model.fit(
         x=train_features,
         y=train_target,
@@ -140,12 +155,12 @@ def main() -> None:
     plot_training_history(history)
     plt.savefig(evaluation_folder / plots_folder / 'train_history.png')
 
-    # Save the model using BentoML
+    # Save the fine tuned model using BentoML
     # Export the model from the model store to the local model folder
-    model_path = f"{model_folder.absolute()}/air_temperature_regressor.bentomodel"
-    bentoml.keras.save_model("air_temperature_regressor", model)
+    model_path = f"{model_folder.absolute()}/model.bentomodel"
+    bentoml.keras.save_model("model", model)
     bentoml.models.export_model(
-        "air_temperature_regressor:latest",
+        "model:latest",
         model_path,
     )
 
