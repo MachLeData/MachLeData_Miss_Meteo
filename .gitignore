@@ -6,8 +6,9 @@ __pycache__/
 .myenv
 
 # Data used to train the models
+data/raw/
 data/prepared/
-data/intermediate
+data/intermediate/
 
 # Evaluation results
 evaluation/
@@ -20,7 +21,6 @@ model/
 
 # Ignore jupyter notebook checkpoints
 notebook/.ipynb_checkpoints/
-
 
 # environnment variable
 .env
