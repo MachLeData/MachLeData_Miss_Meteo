@@ -28,7 +28,8 @@ jobs:
 
       - name: Prepare, train and evaluate
         run: |
-          dvc repro --pull 
+          dvc pull
+          dvc repro prepare train evaluate
           dvc push 
 
       - name: Commit changes in dvc.lock
