@@ -21,9 +21,9 @@ stages:
     deps:
     - path: data/raw
       hash: md5
-      md5: c59c02afcdd7af6a5c01f1b47362ba39.dir
-      size: 1046586
-      nfiles: 3
+      md5: b066e02e895db46bd4e536d1c4e92d08.dir
+      size: 892176
+      nfiles: 2
     - path: params.yaml
       hash: md5
       md5: d2ac6996375f9fb974091b4ff0d077f5
