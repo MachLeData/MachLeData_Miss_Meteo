@@ -10,7 +10,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  ingest_new_data_and_pull_request:
+  ingest_new_data_and_retrain:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
