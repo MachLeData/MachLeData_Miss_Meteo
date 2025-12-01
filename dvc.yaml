@@ -12,10 +12,7 @@ stages:
   prepare:
     cmd: >
       python src/prepare.py
-<<<<<<< HEAD
-=======
       data/raw/ogd-smn_puy_h_recent.csv
->>>>>>> 62bdf34111b07507d418a4b8453621b8b28b544f
       data/intermediate
       data/raw/ogd-smn_meta_parameters.csv
       data/prepared
@@ -38,15 +35,10 @@ stages:
       - params.yaml
       - src/train.py
       - src/utils/seed.py
-<<<<<<< HEAD
-      - data/prepared/train.parquet
-      - data/prepared/test.parquet
-=======
       - data/prepared/train_historical.parquet
       - data/prepared/val_historical.parquet
       - data/prepared/train_finetuning.parquet
       - data/prepared/val_finetuning.parquet
->>>>>>> 62bdf34111b07507d418a4b8453621b8b28b544f
     outs:
       - model/model.bentomodel
       - evaluation/plots/train_history.png

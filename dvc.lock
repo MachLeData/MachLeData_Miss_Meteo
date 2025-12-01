@@ -12,8 +12,8 @@ stages:
     outs:
     - path: data/intermediate
       hash: md5
-      md5: e9169e8a4234e6e245531eed3eb3cce2.dir
-      size: 26041
+      md5: 4de384fc67e8839dc98dbafa81e95908.dir
+      size: 26119
       nfiles: 1
   prepare:
     cmd: "python src/prepare.py data/raw/ogd-smn_puy_h_recent.csv data/intermediate
@@ -21,9 +21,9 @@ stages:
     deps:
     - path: data/raw
       hash: md5
-      md5: c59c02afcdd7af6a5c01f1b47362ba39.dir
-      size: 1046586
-      nfiles: 3
+      md5: b066e02e895db46bd4e536d1c4e92d08.dir
+      size: 892176
+      nfiles: 2
     - path: params.yaml
       hash: md5
       md5: d2ac6996375f9fb974091b4ff0d077f5
@@ -39,8 +39,8 @@ stages:
     outs:
     - path: data/prepared
       hash: md5
-      md5: ddfd2e34c03155e1b95775f1b17b498c.dir
-      size: 249581
+      md5: c47fe7732e64c0b734ec412588a88014.dir
+      size: 249299
       nfiles: 4
   train:
     cmd: "python src/train.py data/prepared/train_historical.parquet data/prepared/val_historical.parquet
@@ -48,20 +48,20 @@ stages:
     deps:
     - path: data/prepared/train_finetuning.parquet
       hash: md5
-      md5: bcdb57fe946bdf1af8802968fde3cfa3
-      size: 20509
+      md5: e97a66752ea1c60c14463e9d103e4309
+      size: 20394
     - path: data/prepared/train_historical.parquet
       hash: md5
-      md5: b106a53c5c68f2bcb63bf8ea802b238d
-      size: 154874
+      md5: 257e3b5725ec7e51958ebb56738d2f12
+      size: 154864
     - path: data/prepared/val_finetuning.parquet
       hash: md5
-      md5: a1f69f39737e0156956a263bdbe5a42c
-      size: 15448
+      md5: 2713c816153fcca971b1e24bfe7ffca8
+      size: 15298
     - path: data/prepared/val_historical.parquet
       hash: md5
-      md5: bc41735f6664108857b215e4daa34e40
-      size: 58750
+      md5: 6620547c6391a134dcac09418b9e9cfa
+      size: 58743
     - path: params.yaml
       hash: md5
       md5: d2ac6996375f9fb974091b4ff0d077f5
@@ -77,28 +77,28 @@ stages:
     outs:
     - path: evaluation/plots/train_history.png
       hash: md5
-      md5: 6d07a28e94404ee54d5db824668bf30d
-      size: 30006
+      md5: 596b09f7fe67dbc20d3db6bbdd065e3e
+      size: 27974
     - path: model/model.bentomodel
       hash: md5
-      md5: ffcf4dbae7eafd23512cee422d6b8c9a
-      size: 7264
+      md5: 93119a7bcce59c643b340f9b99093b62
+      size: 7244
   evaluate:
     cmd: "python src/evaluate.py model/model.bentomodel data/prepared/val_historical.parquet
       data/prepared/val_finetuning.parquet\n"
     deps:
     - path: data/prepared/val_finetuning.parquet
       hash: md5
-      md5: a1f69f39737e0156956a263bdbe5a42c
-      size: 15448
+      md5: 2713c816153fcca971b1e24bfe7ffca8
+      size: 15298
     - path: data/prepared/val_historical.parquet
       hash: md5
-      md5: bc41735f6664108857b215e4daa34e40
-      size: 58750
+      md5: 6620547c6391a134dcac09418b9e9cfa
+      size: 58743
     - path: model/model.bentomodel
       hash: md5
-      md5: ffcf4dbae7eafd23512cee422d6b8c9a
-      size: 7264
+      md5: 93119a7bcce59c643b340f9b99093b62
+      size: 7244
     - path: src/evaluate.py
       hash: md5
       md5: 34cb91fb1f18fdef49b4e555c5b3c562
@@ -106,13 +106,13 @@ stages:
     outs:
     - path: evaluation/metrics.json
       hash: md5
-      md5: 63229dd791a524cf708428e3eb7339d7
+      md5: 45b9700e88bd992a09a0682467d28dcb
       size: 547
     - path: evaluation/plots/finetuned_model_finetuning_validation.png
       hash: md5
-      md5: de72ae3d0550606202b0b67ff549279b
-      size: 47702
+      md5: 6d91acc83fa01f0f430232e8c718254a
+      size: 51206
     - path: evaluation/plots/finetuned_model_historical_validation.png
       hash: md5
-      md5: 50f2f616c4e3deba96e3e5f9b622918a
-      size: 113551
+      md5: 4433f97d06deb51b42a13c789bdcf767
+      size: 113601
