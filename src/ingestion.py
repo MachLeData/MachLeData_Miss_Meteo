@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys
 import io
-import requests
-import pandas as pd
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
+
+import pandas as pd
+import requests
+
+from utils.data_downloading import download_csv
+
 
 # ---- téléchargement d'un CSV MeteoSwiss ----
 def download_csv(url: str) -> pd.DataFrame | None:
@@ -20,10 +24,11 @@ def download_csv(url: str) -> pd.DataFrame | None:
         r = requests.get(url, headers=hdrs, timeout=30)
         r.raise_for_status()
         # CSV MeteoSwiss: séparateur ';', encodage Windows-1252
-        return pd.read_csv(io.BytesIO(r.content), delimiter=';', encoding="cp1252")
+        return pd.read_csv(io.BytesIO(r.content), delimiter=";", encoding="cp1252")
     except Exception as e:
         print(f"Error downloading {url}: {e}", file=sys.stderr)
         return None
+
 
 def _guess_time_col(df: pd.DataFrame) -> str:
     for c in ["ReferenceTS", "reference_timestamp", "time"]:
@@ -31,9 +36,14 @@ def _guess_time_col(df: pd.DataFrame) -> str:
             return c
     raise KeyError(f"Colonne temps introuvable. Colonnes dispo: {list(df.columns)}")
 
+
 # ---- traitement : concat, parse temps, dédoublonnage, filtre 7 jours ----
-def process_data(df_recent: pd.DataFrame, df_historical: pd.DataFrame,
-                 start_utc: datetime, end_utc: datetime) -> pd.DataFrame:
+def process_data(
+    df_recent: pd.DataFrame,
+    df_historical: pd.DataFrame,
+    start_utc: datetime,
+    end_utc: datetime,
+) -> pd.DataFrame:
     if df_recent is None or df_historical is None:
         raise ValueError("df_recent/df_historical manquant")
 
@@ -54,6 +64,7 @@ def process_data(df_recent: pd.DataFrame, df_historical: pd.DataFrame,
     df = df[(df["ts_utc"] > start_utc) & (df["ts_utc"] <= end_utc)].copy()
     return df.reset_index(drop=True)
 
+
 def build_output_path(output_dir: str, end_utc: datetime) -> Path:
     tz = ZoneInfo("Europe/Zurich")
     local_dt = end_utc.astimezone(tz)
@@ -61,10 +72,14 @@ def build_output_path(output_dir: str, end_utc: datetime) -> Path:
     filename = f"lastweek_{date_str}.csv"
     return Path(output_dir) / filename
 
+
 def main():
     # --- args : RECENT_URL HISTORICAL_URL OUTPUT_CSV ---
     if len(sys.argv) != 4:
-        print("Usage: python fetch_meteoswiss.py RECENT_URL HISTORICAL_URL OUTPUT_CSV", file=sys.stderr)
+        print(
+            "Usage: python fetch_meteoswiss.py RECENT_URL HISTORICAL_URL OUTPUT_CSV",
+            file=sys.stderr,
+        )
         sys.exit(2)
 
     recent_url = sys.argv[1]
@@ -94,6 +109,7 @@ def main():
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df_last_week.to_csv(output_path, index=False)
     print(f"Écrit: {output_path} ({len(df_last_week)} lignes)")
+
 
 if __name__ == "__main__":
     main()
