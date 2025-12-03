@@ -4,6 +4,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import asciichartpy as acp
 import pandas as pd
 import requests
 
@@ -69,7 +70,23 @@ def main():
     # Make prediction request
     result = predict_payload(payload)
 
-    print(len(result["res"]))
+    # Display preview of results
+    y = result["res"]
+    nb_value = 150
+
+    y_values = [
+        item[0] if isinstance(item, (list, tuple)) else item for item in y[:nb_value]
+    ]
+
+    print("\n📈 Preview:\n")
+    config = {
+        "height": 30,
+        "colors": [
+            acp.green,  # Couleur de la ligne
+        ],
+    }
+    plot = acp.plot(y_values, config)
+    print(plot)
 
 
 if __name__ == "__main__":
