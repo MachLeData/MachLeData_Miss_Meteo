@@ -12,8 +12,13 @@ stages:
     outs:
     - path: data/intermediate
       hash: md5
+<<<<<<< HEAD
       md5: c59bdcdb2761ce451a0b439c7a536f90.dir
       size: 26418
+=======
+      md5: c18b78c468360f9e3cd68388bb515ae7.dir
+      size: 25995
+>>>>>>> 0b00069 (Separate baseline training logic from finetuning)
       nfiles: 1
   prepare:
     cmd: "python src/prepare.py data/raw/ogd-smn_puy_h_recent.csv data/intermediate
@@ -26,8 +31,8 @@ stages:
       nfiles: 2
     - path: params.yaml
       hash: md5
-      md5: d2ac6996375f9fb974091b4ff0d077f5
-      size: 227
+      md5: 87da1f89abe5c46ea473b7c0040b0996
+      size: 327
     - path: src/prepare.py
       hash: md5
       md5: ef917176979d48ecf3b4643f1d77bbe8
@@ -39,54 +44,107 @@ stages:
     outs:
     - path: data/prepared
       hash: md5
+<<<<<<< HEAD
       md5: c3937aeb5f560f20205d5ab54f9df74c.dir
       size: 34616
       nfiles: 2
+=======
+      md5: af55f0443112aecea75520a1c7bc9e64.dir
+      size: 248374
+      nfiles: 4
+>>>>>>> 0b00069 (Separate baseline training logic from finetuning)
   train:
     cmd: "python src/train.py data/prepared/train_historical.parquet data/prepared/val_historical.parquet
       data/prepared/train_finetuning.parquet data/prepared/val_finetuning.parquet\n"
     deps:
     - path: data/prepared/train_finetuning.parquet
       hash: md5
+<<<<<<< HEAD
       md5: 46cf0302f2f8e9ab41359953202d8921
       size: 14968
     - path: data/prepared/train.parquet
       hash: md5
       md5: f1f9c8397c2f831b112934d0b93fc9ad
       size: 19648
+=======
+      md5: 197e6fc23a6e8226be572a968c753b96
+      size: 19612
+    - path: data/prepared/train_historical.parquet
+      hash: md5
+      md5: b90ac46dcbc53936f01a77a87c6b2f78
+      size: 154892
+    - path: data/prepared/val_finetuning.parquet
+      hash: md5
+      md5: 6c3ff3fd31ba235376dd117ca8d62377
+      size: 15133
+    - path: data/prepared/val_historical.parquet
+      hash: md5
+      md5: 5ee5ed197c9acecdbd4873addef5af8f
+      size: 58737
+    - path: model/baseline.bentomodel
+      hash: md5
+      md5: 5e488754b63ffd6fd28aec5119cc801d
+      size: 7304
+>>>>>>> 0b00069 (Separate baseline training logic from finetuning)
     - path: params.yaml
       hash: md5
-      md5: d2ac6996375f9fb974091b4ff0d077f5
-      size: 227
+      md5: 87da1f89abe5c46ea473b7c0040b0996
+      size: 327
     - path: src/train.py
       hash: md5
-      md5: 205a73ed528c2b3c68bf0563d27ab7a1
-      size: 5813
+      md5: 0828d3dd6976660244ccfe213d31a5f2
+      size: 2757
     - path: src/utils/seed.py
       hash: md5
       md5: 75b1f88de7bb9fe37a970efc4a462d8d
       size: 168
+    - path: src/utils/train_utils.py
+      hash: md5
+      md5: 0c002ae771c5e0107191cd39861ce290
+      size: 1758
     outs:
     - path: evaluation/plots/train_history.png
       hash: md5
+<<<<<<< HEAD
       md5: 4b0765131d81cb726b0e66add39d59a4
       size: 50397
     - path: model/air_temperature_regressor.bentomodel
       hash: md5
       md5: 2d5b1468c554906b9e5c42e1ae0cda3a
       size: 7332
+=======
+      md5: 28a9f08df790b9ecd5eb1fa5015e609b
+      size: 30011
+    - path: model/model.bentomodel
+      hash: md5
+      md5: a846217408ae06b878cecbf0e8821177
+      size: 7260
+>>>>>>> 0b00069 (Separate baseline training logic from finetuning)
   evaluate:
     cmd: "python src/evaluate.py model/model.bentomodel data/prepared/val_historical.parquet
       data/prepared/val_finetuning.parquet\n"
     deps:
     - path: data/prepared/val_finetuning.parquet
       hash: md5
+<<<<<<< HEAD
       md5: 46cf0302f2f8e9ab41359953202d8921
       size: 14968
     - path: model/air_temperature_regressor.bentomodel
       hash: md5
       md5: 2d5b1468c554906b9e5c42e1ae0cda3a
       size: 7332
+=======
+      md5: 6c3ff3fd31ba235376dd117ca8d62377
+      size: 15133
+    - path: data/prepared/val_historical.parquet
+      hash: md5
+      md5: 5ee5ed197c9acecdbd4873addef5af8f
+      size: 58737
+    - path: model/model.bentomodel
+      hash: md5
+      md5: a846217408ae06b878cecbf0e8821177
+      size: 7260
+>>>>>>> 0b00069 (Separate baseline training logic from finetuning)
     - path: src/evaluate.py
       hash: md5
       md5: 34cb91fb1f18fdef49b4e555c5b3c562
@@ -94,9 +152,58 @@ stages:
     outs:
     - path: evaluation/metrics.json
       hash: md5
+<<<<<<< HEAD
       md5: 38c58ea67b12384d5fb91090228daa74
       size: 29
     - path: evaluation/plots/prediction_preview.png
       hash: md5
       md5: 8c6b664e258a259e5d00144dc989e5b6
       size: 48354
+=======
+      md5: ff08b7a95ba65222eeb0e63743306bf0
+      size: 549
+    - path: evaluation/plots/finetuned_model_finetuning_validation.png
+      hash: md5
+      md5: ba8bb52db22b10a4cf11700d6b28dfb8
+      size: 56805
+    - path: evaluation/plots/finetuned_model_historical_validation.png
+      hash: md5
+      md5: ee1cfedfaffcad1469f536397fd38848
+      size: 113018
+  train_baseline:
+    cmd: "python src/train_baseline.py data/prepared/train_historical.parquet data/prepared/val_historical.parquet\n"
+    deps:
+    - path: data/prepared/train_historical.parquet
+      hash: md5
+      md5: b90ac46dcbc53936f01a77a87c6b2f78
+      size: 154892
+    - path: data/prepared/val_historical.parquet
+      hash: md5
+      md5: 5ee5ed197c9acecdbd4873addef5af8f
+      size: 58737
+    - path: params.yaml
+      hash: md5
+      md5: 87da1f89abe5c46ea473b7c0040b0996
+      size: 327
+    - path: src/train_baseline.py
+      hash: md5
+      md5: 5de8fac857612048ed06e2d9ee0e9fb1
+      size: 3520
+    - path: src/utils/seed.py
+      hash: md5
+      md5: 75b1f88de7bb9fe37a970efc4a462d8d
+      size: 168
+    - path: src/utils/train_utils.py
+      hash: md5
+      md5: 0c002ae771c5e0107191cd39861ce290
+      size: 1758
+    outs:
+    - path: evaluation/plots/baseline_train_history.png
+      hash: md5
+      md5: 552739b6f6aed29fe79e0926e30ef464
+      size: 45592
+    - path: model/baseline.bentomodel
+      hash: md5
+      md5: 5e488754b63ffd6fd28aec5119cc801d
+      size: 7304
+>>>>>>> 0b00069 (Separate baseline training logic from finetuning)
