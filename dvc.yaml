@@ -24,6 +24,21 @@ stages:
       - prepare
     outs:
       - data/prepared
+  train_baseline:
+    cmd: >
+      python src/train_baseline.py
+      data/prepared/train_historical.parquet
+      data/prepared/val_historical.parquet
+    deps:
+      - params.yaml
+      - src/train_baseline.py
+      - src/utils/seed.py
+      - src/utils/train_utils.py
+      - data/prepared/train_historical.parquet
+      - data/prepared/val_historical.parquet
+    outs:
+      - model/baseline.bentomodel
+      - evaluation/plots/baseline_train_history.png
   train:
     cmd: >
       python src/train.py
@@ -35,10 +50,12 @@ stages:
       - params.yaml
       - src/train.py
       - src/utils/seed.py
+      - src/utils/train_utils.py
       - data/prepared/train_historical.parquet
       - data/prepared/val_historical.parquet
       - data/prepared/train_finetuning.parquet
       - data/prepared/val_finetuning.parquet
+      - model/baseline.bentomodel
     outs:
       - model/model.bentomodel
       - evaluation/plots/train_history.png
