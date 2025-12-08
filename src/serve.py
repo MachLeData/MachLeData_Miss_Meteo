@@ -10,7 +10,7 @@ from bentoml.validators import ContentType
 
 @bentoml.service(name="air_temperature_regressor")
 class AirTemperatureRegressorService:
-    bento_model = bentoml.models.get("air_temperature_regressor:latest")
+    bento_model = bentoml.models.get("model:latest")
 
     def __init__(self) -> None:
         import tensorflow as tf
