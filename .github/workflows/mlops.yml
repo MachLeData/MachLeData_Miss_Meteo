@@ -54,7 +54,7 @@ jobs:
         # if: github.ref == 'refs/heads/main'
         run: |
           # Containerize the Bento
-          bentoml containerize model:latest \
+          bentoml containerize air_temperature_regressor:latest \
             --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:latest \
             --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}
           # Push the container to the Container Registry
