@@ -16,6 +16,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Create new branch
+        run: |
+          BRANCH_NAME="continuous-learning/retrain-$(date +%Y%m%d-%H%M%S)"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          git checkout -b $BRANCH_NAME
+
       - name: Login to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -35,8 +41,63 @@ jobs:
           dvc repro --pull 
           dvc push 
 
-      - name: Commit changes in dvc.lock
-        uses: stefanzweifel/git-auto-commit-action@v7
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dvc.lock evaluation/
+          git commit -m "feat(dvc): retrain model with new data"
+          git push origin $BRANCH_NAME
+      - name: Create Pull Request
+        id: create_pr
+        uses: peter-evans/create-pull-request@v6
         with:
-          commit_message: "feat(dvc): update dvc.lock"
-          file_pattern: dvc.lock
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.BRANCH_NAME }}
+          title: "Continuous Learning: Model Retrain $(date +%Y-%m-%d)"
+          body: |
+            ## Automated Model Retraining
+            
+            This PR contains the results of the scheduled continuous learning workflow.
+            
+            **Retrain Date:** $(date +%Y-%m-%d)
+            **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            Please review the model performance metrics below before merging.
+          labels: automated, continuous-learning
+          base: main
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup CML
+        uses: iterative/setup-cml@v2
+        with:
+          version: '0.20.6'
+
+      - name: Create CML report
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Add title to the report
+          echo "# Baseline VS Retrained Model Performances" >> report.md
+          echo "" >> report.md
+          echo "**Retrain Date:** $(date +%Y-%m-%d)" >> report.md
+          echo "" >> report.md
+
+          # Create plots
+          echo "## Validation on Historical dataset" >> report.md
+
+          echo '![](evaluation/plots/baseline_model_historical_validation.png "baseline_model_historical_validation")' >> report.md
+
+          echo '![](evaluation/plots/finetuned_model_historical_validation.png "retrained_model_historical_validation")' >> report.md
+
+          echo "## Validation on New dataset" >> report.md
+
+          echo '![](evaluation/plots/baseline_model_finetuning_validation.png "baseline_model_new_validation")' >> report.md
+          echo '![](evaluation/plots/finetuned_model_finetuning_validation.png "retrained_model_new_validation")' >> report.md
+
+          # Publish the CML report to the PR
+          cml comment create --pr=${{ steps.create_pr.outputs.pull-request-number }} report.md    
