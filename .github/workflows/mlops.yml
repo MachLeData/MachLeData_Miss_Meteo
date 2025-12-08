@@ -44,9 +44,9 @@ jobs:
           registry: ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}
           username: _json_key
           password: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
-      # - name: Import the BentoML model
-      # if: github.ref == 'refs/heads/main'
-      # run: bentoml models import model/model.bentomodel
+      - name: Import the BentoML model
+        # if: github.ref == 'refs/heads/main'
+        run: bentoml models import model/model.bentomodel
       - name: Build the BentoML model artifact
         # if: github.ref == 'refs/heads/main'
         run: bentoml build src
