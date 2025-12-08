@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
 from typing import Annotated, Any, Dict, List
 
 import bentoml
-import numpy as np
 import pandas as pd
 from bentoml.validators import ContentType
 
