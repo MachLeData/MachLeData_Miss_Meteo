@@ -53,7 +53,7 @@ def main() -> None:
     val_target = val_finetuning_df['air_temperature']
 
     # Load baseline model
-    model = bentoml.keras.load_model('baseline_model')
+    model = bentoml.keras.load_model('baseline')
 
     # FIXME: should we freeze some weights?
     print(model.summary())
