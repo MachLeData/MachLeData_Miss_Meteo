@@ -80,16 +80,22 @@ jobs:
           echo "" >> report.md
 
           # Create plots
-          echo "## Validation on Historical dataset" >> report.md
 
-          echo '![](evaluation/plots/baseline_model_historical_validation.png "baseline_model_historical_validation")' >> report.md
-
-          echo '![](evaluation/plots/finetuned_model_historical_validation.png "retrained_model_historical_validation")' >> report.md
+          echo "## Metrics" >> report.md
+          echo "" >> report.md
+          dvc metrics show --md >> report.md
+          echo "" >> report.md
 
           echo "## Validation on New dataset" >> report.md
 
           echo '![](evaluation/plots/baseline_model_finetuning_validation.png "baseline_model_new_validation")' >> report.md
           echo '![](evaluation/plots/finetuned_model_finetuning_validation.png "retrained_model_new_validation")' >> report.md
+
+          echo "## Validation on Historical dataset" >> report.md
+
+          echo '![](evaluation/plots/baseline_model_historical_validation.png "baseline_model_historical_validation")' >> report.md
+
+          echo '![](evaluation/plots/finetuned_model_historical_validation.png "retrained_model_historical_validation")' >> report.md
 
           # Publish the CML report to the PR
           cml comment update --target=pr --publish report.md  
