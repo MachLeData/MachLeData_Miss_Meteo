@@ -237,7 +237,7 @@ def main() -> None:
     
     # Load and evaluate baseline model if it exists
     print("\nLoading baseline model...")
-    baseline_model = load_model_from_store("baseline_model")
+    baseline_model = load_model_from_store("baseline")
     baseline_exists = baseline_model is not None
     
     if baseline_exists:
