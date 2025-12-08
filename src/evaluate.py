@@ -4,9 +4,12 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import pandas as pd
+import torch
 import bentoml
 from sklearn.metrics import root_mean_squared_error
+from utils.train_utils import mark_model_as_safe
 
+mark_model_as_safe()
 
 def preview_prediction(date_values, target_values, predict_values, title):
     """Generate prediction visualization plot."""
@@ -34,9 +37,20 @@ def load_dataset(dataset_file):
     return features, target, timestamps
 
 
-def evaluate_model(model, features, target, timestamps, model_name, dataset_name, plots_folder):
+def make_predictions(model, features, device):
+    """Generate predictions from PyTorch model."""
+    model.eval()
+    features_tensor = torch.FloatTensor(features.values)
+    
+    with torch.no_grad():
+        predictions_tensor = model(features_tensor.to(device))
+    
+    return predictions_tensor.cpu().numpy().flatten()
+
+
+def evaluate_model(model, features, target, timestamps, model_name, dataset_name, plots_folder, device):
     """Evaluate a model on a dataset and return metrics and plot."""
-    predictions = model.predict(features)
+    predictions = make_predictions(model, features, device)
     rmse = root_mean_squared_error(target, predictions)
     
     # Generate plot
@@ -56,7 +70,7 @@ def evaluate_model(model, features, target, timestamps, model_name, dataset_name
 def load_model_from_store(model_name):
     """Load a model from BentoML model store."""
     try:
-        model = bentoml.keras.load_model(model_name)
+        model = bentoml.pytorch.load_model(model_name)
         print(f"{model_name} loaded successfully.")
         return model
     except Exception as e:
@@ -72,7 +86,7 @@ def import_model_to_store(model_file):
         print("Model already exists in the model store - skipping import.")
 
 
-def evaluate_model_on_datasets(model, model_name, historical_data, finetuning_data, plots_folder):
+def evaluate_model_on_datasets(model, model_name, historical_data, finetuning_data, plots_folder, device):
     """Evaluate a model on both validation datasets."""
     hist_features, hist_target, hist_timestamps = historical_data
     ft_features, ft_target, ft_timestamps = finetuning_data
@@ -85,7 +99,8 @@ def evaluate_model_on_datasets(model, model_name, historical_data, finetuning_da
         hist_timestamps,
         model_name,
         "Historical Validation",
-        plots_folder
+        plots_folder,
+        device
     )
     print(f"RMSE: {hist_rmse:.3f}")
     
@@ -97,7 +112,8 @@ def evaluate_model_on_datasets(model, model_name, historical_data, finetuning_da
         ft_timestamps,
         model_name,
         "Finetuning Validation",
-        plots_folder
+        plots_folder,
+        device
     )
     print(f"RMSE: {ft_rmse:.3f}")
     
@@ -115,6 +131,7 @@ def calculate_improvement_metrics(baseline_metrics, finetuned_metrics):
         "improvement_historical_validation_pct": (bl_hist - ft_hist) / bl_hist * 100,
         "improvement_finetuning_validation_pct": (bl_ft - ft_ft) / bl_ft * 100,
     }
+
 
 def should_update_baseline(baseline_metrics, finetuned_metrics, baseline_exists):
     """Determine if baseline should be updated based on performance."""
@@ -147,7 +164,11 @@ def should_update_baseline(baseline_metrics, finetuned_metrics, baseline_exists)
 def save_baseline_model(model):
     """Save model as the new baseline in BentoML store and export to folder."""
     try:
-        bentoml.keras.save_model("baseline_model", model)
+        bentoml.pytorch.save_model(
+            "baseline_model",
+            model,
+            signatures={"__call__": {"batchable": True}},
+        )
         
         baseline_model_folder = Path("model/baseline")
         baseline_model_folder.mkdir(parents=True, exist_ok=True)
@@ -206,6 +227,10 @@ def main() -> None:
     # Create folders
     plots_folder.mkdir(parents=True, exist_ok=True)
     
+    # Determine device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+    
     # Import the finetuned model to the model store
     import_model_to_store(model_file)
     
@@ -224,12 +249,15 @@ def main() -> None:
         print("Failed to load finetuned model. Exiting.")
         exit(1)
     
+    finetuned_model = finetuned_model.to(device)
+    
     ft_hist_rmse, ft_ft_rmse = evaluate_model_on_datasets(
         finetuned_model,
         "Finetuned Model",
         historical_data,
         finetuning_data,
-        plots_folder
+        plots_folder,
+        device
     )
     
     all_metrics["finetuned_model_historical_validation_rmse"] = ft_hist_rmse
@@ -241,12 +269,15 @@ def main() -> None:
     baseline_exists = baseline_model is not None
     
     if baseline_exists:
+        baseline_model = baseline_model.to(device)
+        
         bl_hist_rmse, bl_ft_rmse = evaluate_model_on_datasets(
             baseline_model,
             "Baseline Model",
             historical_data,
             finetuning_data,
-            plots_folder
+            plots_folder,
+            device
         )
         
         all_metrics["baseline_model_historical_validation_rmse"] = bl_hist_rmse
