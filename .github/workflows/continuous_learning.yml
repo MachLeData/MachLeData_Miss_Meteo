@@ -48,25 +48,17 @@ jobs:
           git add dvc.lock 
           git commit -m "feat(dvc): retrain model with new data"
           git push origin $BRANCH_NAME
-      - name: Create Pull Request
+      - name: Open pull request using gh CLI
         id: create_pr
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ env.BRANCH_NAME }}
-          title: "Continuous Learning: Model Retrain $(date +%Y-%m-%d)"
-          body: |
-            ## Automated Model Retraining
-            
-            This PR contains the results of the scheduled continuous learning workflow.
-            
-            **Retrain Date:** $(date +%Y-%m-%d)
-            **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            
-            Please review the model performance metrics below before merging.
-          labels: automated, continuous-learning
-          base: main
-
+        run: |
+          PR_URL=$(gh pr create \
+            --title "Continuous Learning: Model Retrain $(date +%Y-%m-%d)" \
+            --body "This PR contains the results of the scheduled continuous learning workflow" \
+            --base main \
+            --head $(git rev-parse --abbrev-ref HEAD))
+          echo "PR_URL=$PR_URL" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -100,4 +92,4 @@ jobs:
           echo '![](evaluation/plots/finetuned_model_finetuning_validation.png "retrained_model_new_validation")' >> report.md
 
           # Publish the CML report to the PR
-          cml comment create --pr=${{ steps.create_pr.outputs.pull-request-number }} report.md    
+          cml comment update --target=pr --publish report.md  
