@@ -44,34 +44,34 @@ jobs:
           registry: ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}
           username: _json_key
           password: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
-      - name: Import the BentoML model
-        if: github.ref == 'refs/heads/main'
-        run: bentoml models import model/air_temperature_regressor.bentomodel
+      # - name: Import the BentoML model
+      # if: github.ref == 'refs/heads/main'
+      # run: bentoml models import model/model.bentomodel
       - name: Build the BentoML model artifact
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         run: bentoml build src
       - name: Containerize and publish the BentoML model artifact Docker image
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         run: |
           # Containerize the Bento
-          bentoml containerize air_temperature_regressor:latest \
+          bentoml containerize model:latest \
             --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:latest \
             --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}
           # Push the container to the Container Registry
           docker push --all-tags ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor
       #######################################################################
       - name: Get Google Cloud's Kubernetes credentials
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         uses: google-github-actions/get-gke-credentials@v3
         with:
           cluster_name: ${{ secrets.GCP_K8S_CLUSTER_NAME }}
           location: ${{ secrets.GCP_K8S_CLUSTER_ZONE }}
       - name: Update the Kubernetes deployment
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         run: |
           yq -i '.spec.template.spec.containers[0].image = "${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}"' kubernetes/deployment.yaml
       - name: Deploy the model on Kubernetes
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         run: |
           kubectl apply \
             -f kubernetes/deployment.yaml \

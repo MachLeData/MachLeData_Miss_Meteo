@@ -10,8 +10,6 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 import requests
 
-from utils.data_downloading import download_csv
-
 
 # ---- téléchargement d'un CSV MeteoSwiss ----
 def download_csv(url: str) -> pd.DataFrame | None:
