@@ -1,7 +1,6 @@
 prepare:
   separator_train_val: 0.8
-train:
-  reload_previous_model: False
+train_baseline:
   seed: 713705
   n_neurons1: 16
   n_neurons2: 8
@@ -10,6 +9,12 @@ train:
   kernel_initializer: he_normal
   learning_rate: 0.005
   loss: mse
-  n_epochs: 15
+  n_epochs: 20
+  batch_size: 32  
+train:
+  seed: 713705
+  learning_rate: 0.005
+  loss: mse
+  n_epochs: 1
   batch_size: 32
     
