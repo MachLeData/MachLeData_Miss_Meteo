@@ -73,5 +73,5 @@ stages:
     plots:
       - evaluation/plots/finetuned_model_finetuning_validation.png
       - evaluation/plots/finetuned_model_historical_validation.png
-    outs:
+    metrics:
       - evaluation/metrics.json
