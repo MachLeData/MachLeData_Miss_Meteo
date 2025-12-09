@@ -3,17 +3,17 @@ kind: Deployment
 metadata:
   name: air-temperature-regressor-deployment
   labels:
-    app: temperature-air-regressor
+    app: air-temperature-regressor
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: temperature-air-regressor
+      app: air-temperature-regressor
   template:
     metadata:
       labels:
-        app: temperature-air-regressor
+        app: air-temperature-regressor
     spec:
       containers:
-        - name: temperature-air-regressor
+        - name: air-temperature-regressor
           image: europe-west6-docker.pkg.dev/mlops-miss-meteo/miss-meteo-registry/air-temperature-regressor:latest
