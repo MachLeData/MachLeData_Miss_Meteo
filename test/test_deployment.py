@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 import asciichartpy as acp
@@ -8,8 +9,7 @@ import pandas as pd
 import requests
 
 DATASET = Path("data/prepared/val_historical.parquet")
-MODEL_URL = "http://localhost:3000"
-# MODEL_URL = "http://34.65.82.134:80"
+MODEL_URL = os.getenv("MODEL_SERVER_HOST", "http://localhost:3000")
 
 
 def test_model_status():
@@ -116,7 +116,7 @@ def plot_results(result_dict):
 
 def main():
     print("=" * 60)
-    print("     TEST MODEL DEPLOYED")
+    print("     TEST MODEL DEPLOYED at " + MODEL_URL)
     print("=" * 60 + "\n")
 
     # Test if model is deployed

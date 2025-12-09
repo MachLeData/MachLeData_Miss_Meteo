@@ -14,6 +14,7 @@ appnope==0.1.4
 argon2-cffi==25.1.0
 argon2-cffi-bindings==25.1.0
 arrow==1.4.0
+asciichartpy==1.5.25
 asgiref==3.10.0
 asttokens==3.0.0
 astunparse==1.6.3
@@ -26,8 +27,8 @@ beautifulsoup4==4.14.2
 bentoml==1.4.28
 billiard==4.2.2
 bleach==6.2.0
-cattrs==23.1.2
 cachetools==6.2.1
+cattrs==23.1.2
 celery==5.5.3
 certifi==2025.10.5
 cffi==2.0.0
@@ -73,9 +74,6 @@ frozenlist==1.8.0
 fsspec==2025.9.0
 funcy==2.0
 gast==0.6.0
-gitdb==4.0.12
-GitPython==3.1.45
-google-pasta==0.2.0
 gcsfs==2025.9.0
 gitdb==4.0.12
 GitPython==3.1.45
@@ -85,6 +83,7 @@ google-auth-oauthlib==1.2.3
 google-cloud-core==2.5.0
 google-cloud-storage==3.4.1
 google-crc32c==1.7.1
+google-pasta==0.2.0
 google-resumable-media==2.7.2
 googleapis-common-protos==1.71.0
 grandalf==0.8
@@ -162,12 +161,12 @@ optree==0.17.0
 orjson==3.11.4
 packaging==25.0
 pandas==2.3.3
+pandas-stubs==2.3.3.251201
 pandocfilters==1.5.1
 parso==0.8.5
 pathspec==0.12.1
 pexpect==4.9.0
 pillow==12.0.0
-pip==25.3
 pip-requirements-parser==32.0.1
 platformdirs==4.5.0
 prometheus_client==0.23.1
@@ -190,6 +189,9 @@ pygit2==1.19.0
 Pygments==2.19.2
 pygtrie==2.5.0
 pyparsing==3.2.5
+PyQt5==5.15.11
+PyQt5-Qt5==5.15.18
+PyQt5_sip==12.17.2
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.1
 python-json-logger==4.0.0
@@ -233,6 +235,7 @@ tensorboard-data-server==0.7.2
 tensorflow==2.20.0
 termcolor==3.2.0
 terminado==0.18.1
+termplot==0.0.2
 threadpoolctl==3.6.0
 tinycss2==1.4.0
 tomli_w==1.2.0
