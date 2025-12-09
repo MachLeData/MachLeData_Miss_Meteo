@@ -7,13 +7,13 @@ stages:
     deps:
     - path: src/ingestion.py
       hash: md5
-      md5: 6473dc7d0f08d1239696af02f9f2bfc2
-      size: 3640
+      md5: 14927e0d7e7bdb65a2c8109efe565751
+      size: 3541
     outs:
     - path: data/intermediate
       hash: md5
-      md5: 0d2f4028b3e829719e917a6cec7d95c5.dir
-      size: 26127
+      md5: c54ef5ea6fd4d1cb5ed352da023d2d56.dir
+      size: 25903
       nfiles: 1
   prepare:
     cmd: "python src/prepare.py data/raw/ogd-smn_puy_h_recent.csv data/intermediate
@@ -21,17 +21,17 @@ stages:
     deps:
     - path: data/raw
       hash: md5
-      md5: a976b3a57db854e2643ff5f87627e309.dir
-      size: 892356
-      nfiles: 3
+      md5: b066e02e895db46bd4e536d1c4e92d08.dir
+      size: 892176
+      nfiles: 2
     - path: params.yaml
       hash: md5
-      md5: 0b436f41382a51a4e76cddec57560e1d
-      size: 346
+      md5: 87da1f89abe5c46ea473b7c0040b0996
+      size: 327
     - path: src/prepare.py
       hash: md5
-      md5: ceb85ff1d22153a4f164e4118dd2a571
-      size: 8721
+      md5: ef917176979d48ecf3b4643f1d77bbe8
+      size: 8511
     params:
       params.yaml:
         prepare:
@@ -39,8 +39,8 @@ stages:
     outs:
     - path: data/prepared
       hash: md5
-      md5: 15fa0c1b3fc2d8c22974e42a88678dfb.dir
-      size: 249568
+      md5: 5591366014a163982a91b0330a06d6d1.dir
+      size: 248428
       nfiles: 4
   train:
     cmd: "python src/train.py data/prepared/train_historical.parquet data/prepared/val_historical.parquet
@@ -48,115 +48,115 @@ stages:
     deps:
     - path: data/prepared/train_finetuning.parquet
       hash: md5
-      md5: a9c5b2af5fbad95c4f871eb3e4464175
-      size: 20491
+      md5: 4af36db3b994f65611b442e2a34a312b
+      size: 19331
     - path: data/prepared/train_historical.parquet
       hash: md5
-      md5: e3a38d8fa5bb1e11002cf9acd5e59111
-      size: 154968
+      md5: 20c0b1af710915c47dbfbce4623e69ac
+      size: 154845
     - path: data/prepared/val_finetuning.parquet
       hash: md5
-      md5: ab2efafe378ee3f6f578d4f525b66314
-      size: 15359
+      md5: 4ccc9daae46abff9aca8e2d5340b4f93
+      size: 15488
     - path: data/prepared/val_historical.parquet
       hash: md5
-      md5: 1f8fc8693683c1fdfe6c6484f544cb5c
-      size: 58750
+      md5: 4eb8d16fe3d81c89094a3bf4c724a176
+      size: 58764
     - path: model/baseline.bentomodel
       hash: md5
-      md5: 6bbb9ae9b0c3fc2ba941a99c70c6b717
-      size: 7244
+      md5: b0fec41f45a9fcb7c18da6fcc8dfa9eb
+      size: 7236
     - path: params.yaml
       hash: md5
-      md5: 0b436f41382a51a4e76cddec57560e1d
-      size: 346
+      md5: 87da1f89abe5c46ea473b7c0040b0996
+      size: 327
     - path: src/train.py
       hash: md5
-      md5: 1178d5bd4bb1c2823bdfdb16889b20f9
-      size: 2836
+      md5: 060c421388fddae322ab706f8173ca4c
+      size: 2751
     - path: src/utils/seed.py
       hash: md5
-      md5: f035ec37efd24c9d56d5226ef3b429c3
-      size: 175
+      md5: 75b1f88de7bb9fe37a970efc4a462d8d
+      size: 168
     - path: src/utils/train_utils.py
       hash: md5
-      md5: 74bbc2797ab0f7d69cb0d8370aa5b747
-      size: 1812
+      md5: 0c002ae771c5e0107191cd39861ce290
+      size: 1758
     outs:
     - path: evaluation/plots/train_history.png
       hash: md5
-      md5: 087c8cd767455b3a2ccec9d03230c470
-      size: 28941
+      md5: 659495cd704a2a608163caf847a83f3d
+      size: 30009
     - path: model/model.bentomodel
       hash: md5
-      md5: 9cc680b393b84e2a0cbf6db90b8f0cec
-      size: 7204
+      md5: 38a5821fe8fae0ad4d1c8221529c19bc
+      size: 7220
   evaluate:
     cmd: "python src/evaluate.py model/model.bentomodel data/prepared/val_historical.parquet
       data/prepared/val_finetuning.parquet\n"
     deps:
     - path: data/prepared/val_finetuning.parquet
       hash: md5
-      md5: ab2efafe378ee3f6f578d4f525b66314
-      size: 15359
+      md5: 4ccc9daae46abff9aca8e2d5340b4f93
+      size: 15488
     - path: data/prepared/val_historical.parquet
       hash: md5
-      md5: 1f8fc8693683c1fdfe6c6484f544cb5c
-      size: 58750
+      md5: 4eb8d16fe3d81c89094a3bf4c724a176
+      size: 58764
     - path: model/model.bentomodel
       hash: md5
-      md5: 9cc680b393b84e2a0cbf6db90b8f0cec
-      size: 7204
+      md5: 38a5821fe8fae0ad4d1c8221529c19bc
+      size: 7220
     - path: src/evaluate.py
       hash: md5
-      md5: 8b80336af1dd1bba7ee5fdcd64306c47
-      size: 9961
+      md5: 4a45d5a4e84a95d515ea2b5f9d658c93
+      size: 9674
     outs:
     - path: evaluation/metrics.json
       hash: md5
-      md5: 04b2a73766de9f87744d03621a397ab0
-      size: 558
+      md5: d35d32b6b8013c257bc0c289126eaa3b
+      size: 543
     - path: evaluation/plots/finetuned_model_finetuning_validation.png
       hash: md5
-      md5: 1345d058f682a21026e86b52339074df
-      size: 49250
+      md5: 018774af1677ada2f7befec680205414
+      size: 53972
     - path: evaluation/plots/finetuned_model_historical_validation.png
       hash: md5
-      md5: ab10ec42f2d7a2fd933fa1711c42b12c
-      size: 117437
+      md5: aedb2407ef0b46d6d0ed6d51ceb38ff9
+      size: 125313
   train_baseline:
     cmd: "python src/train_baseline.py data/prepared/train_historical.parquet data/prepared/val_historical.parquet\n"
     deps:
     - path: data/prepared/train_historical.parquet
       hash: md5
-      md5: e3a38d8fa5bb1e11002cf9acd5e59111
-      size: 154968
+      md5: 20c0b1af710915c47dbfbce4623e69ac
+      size: 154845
     - path: data/prepared/val_historical.parquet
       hash: md5
-      md5: 1f8fc8693683c1fdfe6c6484f544cb5c
-      size: 58750
+      md5: 4eb8d16fe3d81c89094a3bf4c724a176
+      size: 58764
     - path: params.yaml
       hash: md5
-      md5: 0b436f41382a51a4e76cddec57560e1d
-      size: 346
+      md5: 87da1f89abe5c46ea473b7c0040b0996
+      size: 327
     - path: src/train_baseline.py
       hash: md5
-      md5: 400f6b733f3549916e4066a4c9796714
-      size: 3625
+      md5: 5de8fac857612048ed06e2d9ee0e9fb1
+      size: 3520
     - path: src/utils/seed.py
       hash: md5
-      md5: f035ec37efd24c9d56d5226ef3b429c3
-      size: 175
+      md5: 75b1f88de7bb9fe37a970efc4a462d8d
+      size: 168
     - path: src/utils/train_utils.py
       hash: md5
-      md5: 74bbc2797ab0f7d69cb0d8370aa5b747
-      size: 1812
+      md5: 0c002ae771c5e0107191cd39861ce290
+      size: 1758
     outs:
     - path: evaluation/plots/baseline_train_history.png
       hash: md5
-      md5: 134def41179a330b1c193dc52c4ddaec
-      size: 46144
+      md5: 4739907dcdbee520ed3e3976710298d9
+      size: 47540
     - path: model/baseline.bentomodel
       hash: md5
-      md5: 6bbb9ae9b0c3fc2ba941a99c70c6b717
-      size: 7244
+      md5: b0fec41f45a9fcb7c18da6fcc8dfa9eb
+      size: 7236
