@@ -46,3 +46,43 @@ Develop all the project steps with MLOPS in mind.
 - Implement continuous learning for our production model
 
 
+# gcloud
+
+Need to setup and source environment variables
+```bash
+$ export GCP_K8S_CLUSTER_ZONE="..."
+$ export GCP_K8S_CLUSTER_NAME="..."
+```
+
+## Setup gcloud provider from our local machine
+
+Create the Kubernetes cluster (takes several minutes)
+```bash
+$ gcloud container clusters create \
+    --machine-type=e2-standard-2 \
+    --num-nodes=2 \
+    --zone=$GCP_K8S_CLUSTER_ZONE \
+    $GCP_K8S_CLUSTER_NAME
+```
+
+Merge credential with local kubectl config
+```bash
+$ gcloud container clusters get-credentials $GCP_K8S_CLUSTER_NAME --zone $GCP_K8S_CLUSTER_ZONE
+```
+
+Apply our configuration to the cluster
+```bash
+$ kubectl apply -f kubernetes/deployment.yaml -f kubernetes/service.yaml
+```
+
+Access the model
+```bash
+$ kubectl describe services air-temperature-regressor
+```
+
+# Disable gcloud from local machine
+
+Delete the cluster
+```bash
+$ gcloud container clusters delete --zone $GCP_K8S_CLUSTER_ZONE $GCP_K8S_CLUSTER_NAME
+```
