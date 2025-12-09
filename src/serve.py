@@ -6,7 +6,6 @@ from typing import Annotated, Any, Dict, List
 import bentoml
 import pandas as pd
 from bentoml.validators import ContentType
-from typing_extensions import Hashable
 
 
 @bentoml.service(name="air_temperature_regressor")
@@ -49,8 +48,6 @@ class AirTemperatureRegressorService:
         # prepare all temperatures
         for i in range(len(predictions)):
             air_temperature.append(predictions[i])
-
-        print("############################################")
 
         results = {
             "reference_timestamp": [ts.isoformat() for ts in timestamp],
