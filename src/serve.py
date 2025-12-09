@@ -6,6 +6,7 @@ from typing import Annotated, Any, Dict, List
 import bentoml
 import pandas as pd
 from bentoml.validators import ContentType
+from typing_extensions import Hashable
 
 
 @bentoml.service(name="air_temperature_regressor")
@@ -28,7 +29,32 @@ class AirTemperatureRegressorService:
         )
 
     @bentoml.api()
-    def predict(self, input_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        input_df = pd.DataFrame(input_data)
-        predictions = self.model.predict(input_df)
-        return {"res": predictions.tolist()}
+    def predict(self, data: Dict[str, List[Any]]) -> Dict[str, List[Any]]:
+        input = pd.DataFrame(data)
+
+        input["reference_timestamp"] = pd.to_datetime(input["reference_timestamp"])
+
+        timestamp = input["reference_timestamp"].to_list()
+        air_temperature = input["air_temperature"].to_list()
+        features = input.drop(
+            ["reference_timestamp", "air_temperature", "historical"], axis=1
+        )
+
+        predictions = self.model.predict(features)
+
+        # calculate timestamp of predicted values shifted by 24 hours
+        for i in range(len(timestamp)):
+            timestamp.append(timestamp[i] + pd.Timedelta(hours=24))
+
+        # prepare all temperatures
+        for i in range(len(predictions)):
+            air_temperature.append(predictions[i])
+
+        print("############################################")
+
+        results = {
+            "reference_timestamp": [ts.isoformat() for ts in timestamp],
+            "air_temperature": [float(temp) for temp in air_temperature],
+        }
+
+        return results
