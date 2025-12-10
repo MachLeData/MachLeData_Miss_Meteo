@@ -1,5 +1,8 @@
+from datetime import datetime, timedelta, timezone
+
 import json
 import os
+import sys
 from pathlib import Path
 
 import asciichartpy as acp
@@ -8,8 +11,26 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import requests
 
+from ingestion_lib import (
+    download_csv,
+    process_data,
+)
+
+from prepare_lib import (
+    load_metadata,
+    apply_metadata_to_meteo,
+    build_raw_feature_matrix,
+    preprocess_features,
+    build_supervised_dataframe,
+)
+
+
 DATASET = Path("data/prepared/val_historical.parquet")
 MODEL_URL = os.getenv("MODEL_SERVER_HOST", "http://localhost:3000")
+PUY_RECENT_URL = "https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/puy/ogd-smn_puy_h_now.csv"
+PUY_HISTORICAL_URL = "https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/puy/ogd-smn_puy_h_recent.csv"
+RAW_METADATA_FILE = Path("data/raw/ogd-smn_meta_parameters.csv")
+
 
 
 def test_model_status():
@@ -29,6 +50,39 @@ def test_model_status():
         print("Error: " + str(NameError))
         exit(1)
 
+def get_set_from_parquet():
+    df = pd.read_parquet(DATASET, engine="pyarrow")
+    df_last24h = df[df["historical"] == 1].tail(24)
+    df_last24h.reset_index(drop=True, inplace=True)
+    return df_last24h
+
+def get_set_from_meteo_suisse():
+    # Setup time window
+    end_utc = datetime.now(timezone.utc)
+    start_utc = end_utc - timedelta(hours=24)
+
+    # Download meteo suisse data
+    df_recent = download_csv(PUY_RECENT_URL)
+    df_historical = download_csv(PUY_HISTORICAL_URL)
+
+    if df_recent is None or df_historical is None:
+        sys.exit(1)
+
+    try:
+        return process_data(df_recent, df_historical, start_utc, end_utc)
+    except Exception as e:
+        print(f"Processing error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+def prepare_data(df_last_24h):
+    metadata_df = load_metadata(RAW_METADATA_FILE)
+    meteo_df = apply_metadata_to_meteo(df_last_24h, metadata_df)
+    meteo_df["historical"] = True
+    features_df = build_raw_feature_matrix(meteo_df)
+    features_df = preprocess_features(features_df)
+    supervised_df = build_supervised_dataframe(meteo_df, features_df, lag_hours=0)
+    supervised_df["reference_timestamp"] = supervised_df["reference_timestamp"].astype(str)
+    return supervised_df
 
 def predict(payload: dict) -> dict:
     try:
@@ -124,15 +178,13 @@ def main():
 
     print("\n" + "=" * 60 + "\n")
 
-    # Get validation data as test
-    df = pd.read_parquet(DATASET, engine="pyarrow")
+    # Get data from meteo suisse
+    df_last_24h = get_set_from_meteo_suisse()
 
-    # Prepare last 24h data for prediction
-    df_last24h = df[df["historical"] == 1].tail(24)
-    df_last24h.reset_index(drop=True, inplace=True)
-    df_last24h["reference_timestamp"] = df_last24h["reference_timestamp"].astype(str)
+    # Prepare data for prediction
+    df_last_24h_prepared = prepare_data(df_last_24h)
 
-    payload = {"data": df_last24h.to_dict(orient="list")}
+    payload = {"data": df_last_24h_prepared.to_dict(orient="list")}
 
     # Make prediction request
     result = predict(payload)
@@ -146,3 +198,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
