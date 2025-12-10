@@ -34,6 +34,12 @@ jobs:
           dvc repro prepare train evaluate
           dvc push
 
+      - name: Upload BentoModel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-bentomodel
+          path: model/baseline.bentomodel
+
       - name: Commit changes in `dvc.lock`
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
@@ -68,6 +74,12 @@ jobs:
           registry: ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}
           username: _json_key
           password: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Download BentoModel artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: baseline-bentomodel
+          path: model
 
       - name: Import the BentoML model
         run: bentoml models import model/baseline.bentomodel
