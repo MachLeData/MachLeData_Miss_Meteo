@@ -13,7 +13,6 @@ from utils.train_utils import plot_training_history
 
 
 def set_seed(seed: int) -> None:
-    """Set seed for reproducibility."""
     np.random.seed(seed)
     torch.manual_seed(seed)
     if torch.cuda.is_available():
@@ -21,7 +20,6 @@ def set_seed(seed: int) -> None:
 
 
 def train_epoch(model, train_loader, optimizer, loss_fn, device):
-    """Train for one epoch."""
     model.train()
     total_loss = 0
     for x_batch, y_batch in train_loader:
@@ -40,9 +38,9 @@ def train_epoch(model, train_loader, optimizer, loss_fn, device):
 
 
 def validate(model, val_loader, loss_fn, device):
-    """Validate the model."""
     model.eval()
     total_loss = 0
+    
     with torch.no_grad():
         for x_batch, y_batch in val_loader:
             x_batch = x_batch.to(device)
@@ -58,7 +56,7 @@ def validate(model, val_loader, loss_fn, device):
 def main() -> None:
     if len(sys.argv) != 3:
         print("Arguments error. Usage:\n")
-        print("\tpython3 train.py <val_historical_dataframe_file> <val_finetuning_dataframe_file>\n")
+        print("\tpython3 train.py <train_historical_dataframe_file> <val_historical_dataframe_file>\n")
         exit(1)
     
     # Load parameters
@@ -94,7 +92,7 @@ def main() -> None:
     val_historical_df = pd.read_parquet(Path(sys.argv[2]))
     
     # Shuffle train data
-    train_historical_df = train_historical_df.sample(frac=1)
+    train_historical_df = train_historical_df.sample(frac=1, random_state=seed)
     train_features = train_historical_df.drop(["reference_timestamp", "air_temperature", "historical"], axis=1)
     train_target = train_historical_df['air_temperature']
     

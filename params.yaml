@@ -2,19 +2,20 @@ prepare:
   separator_train_val: 0.8
 train_baseline:
   seed: 713705
-  n_neurons1: 16
-  n_neurons2: 8
-  dropout: 0.2
+  n_neurons1: 4
+  n_neurons2: 2
+  dropout: 0
   activation: gelu
   kernel_initializer: he_normal
-  learning_rate: 0.005
+  learning_rate: 0.01
   loss: mse
   n_epochs: 20
-  batch_size: 32  
+  batch_size: 8
 train:
   seed: 713705
-  learning_rate: 0.005
+  learning_rate: 0.01
   loss: mse
-  n_epochs: 4
-  batch_size: 32
-    
+  n_epochs: 5
+  batch_size: 8
+  lwf_weight: 0
+  replay_ratio: 0.1
