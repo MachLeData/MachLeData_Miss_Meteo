@@ -3,6 +3,7 @@ import sys
 import pandas as pd
 import torch
 import torch.nn as nn
+import copy
 from torch.utils.data import TensorDataset, DataLoader
 import bentoml
 import matplotlib.pyplot as plt
@@ -13,23 +14,36 @@ from pathlib import Path
 
 mark_model_as_safe()
 
-def train_epoch(model, train_loader, optimizer, loss_fn, device):
-    """Train for one epoch."""
+def train_epoch(model, baseline_model, train_loader, optimizer, loss_fn, lwf_weight, device):
     model.train()
+    baseline_model.eval()
+
     total_loss = 0
+    total_lwf_loss = 0
+    total_combined_loss = 0
+    
     for x_batch, y_batch in train_loader:
         x_batch = x_batch.to(device)
         y_batch = y_batch.to(device)
         
         optimizer.zero_grad()
         output = model(x_batch)
+
+        with torch.no_grad():
+            baseline_output = baseline_model(x_batch)
+
         loss = loss_fn(output, y_batch)
-        loss.backward()
+        lwf_loss = loss_fn(output, baseline_output)
+        combined_loss = loss + lwf_weight * lwf_loss
+        combined_loss.backward()
+
         optimizer.step()
         
         total_loss += loss.item()
-    
-    return total_loss / len(train_loader)
+        total_lwf_loss += lwf_loss.item()
+        total_combined_loss += combined_loss.item()
+
+    return total_combined_loss / len(train_loader)
 
 
 def validate(model, val_loader, loss_fn, device):
@@ -61,6 +75,8 @@ def main() -> None:
     loss = train_params["loss"]
     n_epochs = train_params["n_epochs"]
     batch_size = train_params["batch_size"]
+    lwf_weight = train_params["lwf_weight"]
+    replay_ratio = train_params["replay_ratio"]
     
     evaluation_folder = Path("evaluation")
     plots_folder = Path("plots")
@@ -84,7 +100,15 @@ def main() -> None:
     val_finetuning_df = pd.read_parquet(Path(sys.argv[4]))
     
     # Shuffle train
-    train_df = train_finetuning_df.sample(frac=1)
+    train_df = train_finetuning_df.sample(frac=1, random_state=seed)
+
+    # Replay dataframe
+    n_replay = int(len(train_historical_df) * replay_ratio)
+    replay_df = train_historical_df.sample(frac=1, random_state=seed)[:n_replay]
+
+    # Add replay data
+    train_df = pd.concat([train_df, replay_df], axis=0)
+
     train_features = train_df.drop(["reference_timestamp", "air_temperature", "historical"], axis=1)
     train_target = train_df['air_temperature']
     
@@ -105,9 +129,12 @@ def main() -> None:
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     
     # Load baseline model from BentoML
-    model = bentoml.pytorch.load_model("baseline")
+    baseline_model = bentoml.pytorch.load_model("baseline")
+    baseline_model = baseline_model.to(device)
+
+    model = copy.deepcopy(baseline_model)
     model = model.to(device)
-    
+
     # FIXME: should we freeze some weights?
     print(model)
     print(f"\nTotal parameters: {sum(p.numel() for p in model.parameters())}")
@@ -118,9 +145,8 @@ def main() -> None:
     loss_fn_map = {
         'mse': nn.MSELoss(),
         'mae': nn.L1Loss(),
-        'binary_crossentropy': nn.BCEWithLogitsLoss(),
-        'categorical_crossentropy': nn.CrossEntropyLoss(),
     }
+
     loss_fn = loss_fn_map.get(loss.lower(), nn.MSELoss())
     
     # Fine-tuning training loop
@@ -128,7 +154,7 @@ def main() -> None:
     val_losses = []
     
     for epoch in range(n_epochs):
-        train_loss = train_epoch(model, train_loader, optimizer, loss_fn, device)
+        train_loss = train_epoch(model, baseline_model, train_loader, optimizer, loss_fn, lwf_weight, device)
         val_loss = validate(model, val_loader, loss_fn, device)
         
         train_losses.append(train_loss)
