@@ -46,7 +46,7 @@ jobs:
           password: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
       - name: Import the BentoML model
         if: github.ref == 'refs/heads/main'
-        run: bentoml models import model/model.bentomodel
+        run: bentoml models import model/baseline.bentomodel
       - name: Build the BentoML model artifact
         if: github.ref == 'refs/heads/main'
         run: bentoml build src
