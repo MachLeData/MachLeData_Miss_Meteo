@@ -6,9 +6,11 @@ on:
       - main
       - feat/improve-ci-cd
   pull_request:
+  schedule:
+    - cron: '0 6 * * *'  # ex: run daily at 06:00 UTC
 
 jobs:
-  prepare_train_evaluate:
+  repro_dvc:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
@@ -28,10 +30,21 @@ jobs:
       - name: Install dependencies
         run: pip install --requirement requirements-freeze.txt
 
-      - name: Prepare, train and evaluate
+      - name: Pull data from bucket
         run: |
           dvc pull
-          dvc repro prepare train evaluate
+
+      - name: Ingest new data from Meteo Suisse
+        if : github.event_name == 'schedule'
+        run: |
+          dvc repro ingestion
+
+      - name: Reproduce prepare, train and evaluate stages
+        run: |
+          dvc repro prepare train_baseline train evaluate
+
+      - name: Push new data and artifacts to bucket
+        run: |
           dvc push
 
       - name: Upload BentoModel artifact
@@ -51,8 +64,11 @@ jobs:
         with:
           commit_message: "feat(dvc): update dvc.lock"
           file_pattern: dvc.lock
+
   cmf:
-    needs: prepare_train_evaluate
+    # Run CMF only on pull requests, using artifact produced by prepare_train_evaluate in the same run
+    if: github.event_name == 'pull_request'
+    needs: repro_dvc
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
@@ -71,6 +87,7 @@ jobs:
 
       - name: Install dependencies
         run: pip install dvc==3.60.1
+
       - name: Download evaluation metrics artifact
         uses: actions/download-artifact@v4
         with:
@@ -86,37 +103,27 @@ jobs:
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Add title to the report
           echo "# Baseline VS Retrained Model Performances" >> report.md
           echo "" >> report.md
           echo "**Retrain Date:** $(date +%Y-%m-%d)" >> report.md
           echo "" >> report.md
-          
-          # Create plots
-          
           echo "## Metrics" >> report.md
           echo "" >> report.md
           dvc metrics show --md >> report.md
           echo "" >> report.md
-          
           echo "## Validation on New dataset" >> report.md
-          
           echo '![](evaluation/plots/baseline_model_finetuning_validation.png "baseline_model_new_validation")' >> report.md
           echo '![](evaluation/plots/finetuned_model_finetuning_validation.png "retrained_model_new_validation")' >> report.md
-          
           echo "## Validation on Historical dataset" >> report.md
-          
           echo '![](evaluation/plots/baseline_model_historical_validation.png "baseline_model_historical_validation")' >> report.md
-          
           echo '![](evaluation/plots/finetuned_model_historical_validation.png "retrained_model_historical_validation")' >> report.md
-          
-          # Publish the CML report to the PR
-          cml comment update --target=pr --publish report.md  
+          cml comment update --target=pr --publish report.md
 
   deploy_model:
-    needs: prepare_train_evaluate
+    # Run deploy only on pushes to main; use artifact produced by prepare_train_evaluate in that run
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: repro_dvc
     runs-on: ubuntu-24.04
-    #if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
