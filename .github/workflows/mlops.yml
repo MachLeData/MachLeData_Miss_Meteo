@@ -16,6 +16,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+#########################################################################################################
+      - name: Create new branch
+#        if : github.event_name == 'schedule'
+        run: |
+            BRANCH_NAME="continuous-learning/retrain-$(date +%Y%m%d-%H%M%S)"
+            echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+            git checkout -b $BRANCH_NAME
+#########################################################################################################
+
       - name: Login to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -34,10 +43,12 @@ jobs:
         run: |
           dvc pull
 
+#########################################################################################################
       - name: Ingest new data from Meteo Suisse
-        if : github.event_name == 'schedule'
+#        if : github.event_name == 'schedule'
         run: |
           dvc repro ingestion
+#########################################################################################################
 
       - name: Reproduce prepare, train and evaluate stages
         run: |
@@ -64,6 +75,21 @@ jobs:
         with:
           commit_message: "feat(dvc): update dvc.lock"
           file_pattern: dvc.lock
+
+#########################################################################################################
+      - name: Open pull request using gh CLI
+#        if : github.event_name == 'schedule'
+        id: create_pr
+        run: |
+          PR_URL=$(gh pr create \
+            --title "Continuous Learning: Model Retrain $(date +%Y-%m-%d)" \
+            --body "This PR contains the results of the scheduled continuous learning workflow" \
+            --base main \
+            --head $(git rev-parse --abbrev-ref HEAD))
+          echo "PR_URL=$PR_URL" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#########################################################################################################
 
   cmf:
     # Run CMF only on pull requests, using artifact produced by prepare_train_evaluate in the same run
