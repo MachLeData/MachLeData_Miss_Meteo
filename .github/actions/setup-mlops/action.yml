@@ -1,0 +1,25 @@
+name: 'Setup MLOps Environment'
+description: 'Sets up Python, Google Cloud Auth, and dependencies'
+inputs:
+  gcp_credentials:
+    description: 'Service Account JSON Key'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: pip
+
+    - name: Login to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: "${{ inputs.gcp_credentials }}"
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        pip install --requirement requirements-freeze.txt
