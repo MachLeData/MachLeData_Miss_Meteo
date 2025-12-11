@@ -34,7 +34,7 @@ jobs:
         run: dvc pull
 
       - name: Ingest New Data
-        run: dvc repro
+        run: dvc repro -f
 
       - name: Push Data to DVC Remote
         run: dvc push
