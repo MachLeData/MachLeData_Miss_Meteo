@@ -21,7 +21,7 @@ stages:
       - data/raw
       - src/prepare.py
     params:
-      - prepare
+      - prepare.separator_train_val
     outs:
       - data/prepared
   train_baseline:
@@ -30,11 +30,16 @@ stages:
       data/prepared/train_historical.parquet
       data/prepared/val_historical.parquet
     params:
-      - train.seed
-      - train.learning_rate
-      - train.loss
-      - train.n_epochs
-      - train.batch_size
+      - train_baseline.seed
+      - train_baseline.n_neurons1
+      - train_baseline.n_neurons2
+      - train_baseline.dropout
+      - train_baseline.activation
+      - train_baseline.kernel_initializer
+      - train_baseline.learning_rate
+      - train_baseline.loss
+      - train_baseline.n_epochs
+      - train_baseline.batch_size
     deps:
       - params.yaml
       - src/train_baseline.py
