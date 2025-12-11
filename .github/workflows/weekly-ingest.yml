@@ -1,10 +1,9 @@
 name: Weekly Data Ingestion
 
 on:
-  push: # to test it
   schedule:
-    - cron: '0 6,9  * * *'   # Lundi 9h00
-  workflow_dispatch:      # Pour tester manuellement quand tu veux
+    - cron: '0 */1 * * *' # every hour updating (to test our implementation)
+  workflow_dispatch:
 
 permissions:
   contents: write
