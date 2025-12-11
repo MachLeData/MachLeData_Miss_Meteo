@@ -28,7 +28,7 @@ jobs:
         run: dvc pull
 
       - name: Reproduce Pipeline (No Ingestion)
-        run: dvc repro prepare train_baseline train evaluate
+        run: dvc repro -f prepare train_baseline train evaluate
 
       - name: Push Artifacts to DVC & Commit Lock
         if: github.event_name == 'push'
