@@ -7,7 +7,17 @@ on:
     branches: [main]
   schedule:
     - cron: '0 9 * * 1'
-  workflow_dispatch:      # Permet le lancement manuel
+  workflow_dispatch:
+    inputs:
+        version:
+          description: "Version name"
+          required: true
+          default: "minor"
+          type: choice
+          options:
+            - major
+            - minor
+            - patch
 
 permissions:
   contents: write
@@ -119,6 +129,16 @@ jobs:
       # et GitHub détectera l'événement "pull_request"
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install dvc==3.60.1
+
       - name: Setup CML
         uses: iterative/setup-cml@v2
         with:
