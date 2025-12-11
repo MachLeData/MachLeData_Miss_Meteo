@@ -122,9 +122,6 @@ jobs:
         with:
           gcp_credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
 
-      - name: Install Deploy Deps
-        run: pip install bentoml google-cloud-artifact-registry
-
       - name: Login to Docker
         uses: docker/login-action@v3
         with:
@@ -132,34 +129,40 @@ jobs:
           username: _json_key
           password: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
 
-      - name: Download Model
+      - name: Download BentoModel artifact
         uses: actions/download-artifact@v4
         with:
           name: baseline-bentomodel
           path: model
 
-      - name: Build & Push Docker
+      - name: Import the BentoML model
         run: |
           bentoml models import model/baseline.bentomodel
+
+      - name: Build the BentoML model artifact
+        run: |
+          bentoml build src
+
+      - name: Containerize and publish the BentoML model artifact Docker image
+        run: |
+          bentoml containerize air_temperature_regressor:latest \
+            --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:latest \
+            --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}
           
-          # Récupération automatique du tag
-          MODEL_TAG=$(bentoml models list --output json | jq -r '.[0].tag')
-          
-          bentoml containerize $MODEL_TAG \
-             --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:latest \
-             --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}
-             
           docker push --all-tags ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor
 
-      - name: Get GKE Credentials
+      - name: Get Google Cloud's Kubernetes credentials
         uses: google-github-actions/get-gke-credentials@v3
         with:
           cluster_name: ${{ secrets.GCP_K8S_CLUSTER_NAME }}
           location: ${{ secrets.GCP_K8S_CLUSTER_ZONE }}
 
-      - name: Deploy to K8s
+      - name: Update the Kubernetes deployment image in `kubernetes/deployment.yaml`
         run: |
-          kubectl set image deployment/air-temperature-regressor \
-            air-temperature-regressor=${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}
-          
-          kubectl rollout status deployment/air-temperature-regressor
+          yq -i '.spec.template.spec.containers[0].image = "${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}"' kubernetes/deployment.yaml
+
+      - name: Deploy the model on Kubernetes
+        run: |               
+          kubectl apply \               
+            -f kubernetes/deployment.yaml \
+            -f kubernetes/service.yaml
