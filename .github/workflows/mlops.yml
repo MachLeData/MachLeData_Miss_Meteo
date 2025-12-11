@@ -6,7 +6,7 @@ on:
   pull_request:
   workflow_dispatch:         # Allow manual trigger
   schedule:
-    - cron: '56 13 * *'  # ex: run daily at 06:00 UTC
+    - cron: '0 9 * *'  # ex: run daily at 06:00 UTC
 
 permissions:
   contents: write
