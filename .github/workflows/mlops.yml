@@ -98,7 +98,7 @@ jobs:
 
   cmf:
     # Run CMF only on pull requests, using artifact produced by prepare_train_evaluate in the same run
-    if: github.event_name == 'pull_request'
+    if: (github.event_name == 'pull_request') || (github.event_name == 'schedule')
     needs: repro_dvc
     runs-on: ubuntu-24.04
     steps:
