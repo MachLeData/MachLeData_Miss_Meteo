@@ -19,7 +19,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Utilisation de notre action personnalisée
+      - name: Create new branch
+        run: |
+          BRANCH_NAME="continuous-learning/retrain-$(date +%Y%m%d-%H%M%S)"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          git checkout -b $BRANCH_NAME
+
       - name: Setup MLOps Env
         uses: ./.github/actions/setup-mlops
         with:
@@ -34,28 +39,16 @@ jobs:
       - name: Push Data to DVC Remote
         run: dvc push
 
-      - name: Create Branch, Commit Lock and Push
+      - name: Commit Lock and Push
         id: git_push
         run: |
-          # Nom de branche unique
-          BRANCH_NAME="continuous-learning/retrain-$(date +%Y%m%d-%H%M%S)"
-          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
-
-          git checkout -b $BRANCH_NAME
-
-          # Config Bot
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Commit du dvc.lock qui a changé suite à l'ingestion
           git add dvc.lock
           git commit -m "feat(dvc): weekly ingestion update"
-
-          # Push de la nouvelle branche
           git push origin $BRANCH_NAME
 
       - name: Create Pull Request
-        # IMPORTANT: Utiliser un PAT (Personal Access Token) pour déclencher l'autre workflow
         env:
           GH_TOKEN: ${{ secrets.PAT_PR_UPDATE_DATA }}
         run: |

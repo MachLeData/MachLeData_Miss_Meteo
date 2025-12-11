@@ -2,8 +2,8 @@ name: MLOps CI/CD
 
 on:
   push:
-    branches: ["**"]      # Se lance sur tous les pushs
-  pull_request:           # Se lance sur les PRs
+    branches: ["**"]
+  pull_request:
     branches: [main]
 
 permissions:
@@ -12,7 +12,6 @@ permissions:
   id-token: write
 
 jobs:
-  # --- JOB 1: TRAIN ---
   train:
     runs-on: ubuntu-24.04
     steps:
@@ -29,12 +28,9 @@ jobs:
         run: dvc pull
 
       - name: Reproduce Pipeline (No Ingestion)
-        # On ne rejoue PAS 'ingestion'. On suppose que les données sont là.
         run: dvc repro prepare train_baseline train evaluate
 
       - name: Push Artifacts to DVC & Commit Lock
-        # On commit le lock SEULEMENT si c'est un push (pas sur PR pour éviter les conflits, sauf si désiré)
-        # Ici je le mets sur Push pour respecter ta demande "quand je push... commit dvc.lock"
         if: github.event_name == 'push'
         run: |
           dvc push
@@ -42,13 +38,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Si dvc.lock a changé (suite à l'entraînement)
-          if [[ -n $(git status --porcelain dvc.lock) ]]; then
-            git add dvc.lock
-            # [skip ci] est crucial ici pour éviter une boucle infinie !
-            git commit -m "feat(model): update model artifacts [skip ci]"
-            git push
-          fi
+          git add dvc.lock
+          git commit -m "feat(model): update model artifacts"
+          git push
+          
 
       - name: Upload BentoModel artifact
         uses: actions/upload-artifact@v4
@@ -64,7 +57,6 @@ jobs:
           path: evaluation/*
           overwrite: true
 
-  # --- JOB 2: CML REPORT (PR ONLY) ---
   cml:
     needs: train
     if: github.event_name == 'pull_request'
@@ -101,7 +93,7 @@ jobs:
           echo "## Metrics" >> report.md
           
           # Si tu as un fichier metrics.json, utilise cat ou jq
-          # dvc metrics show --md >> report.md (nécessite dvc installé, sinon juste cat les fichiers)
+          # dvc metrics show --md >> report.md
           
           echo "## Visualizations" >> report.md
           echo '![](evaluation/plots/baseline_model_finetuning_validation.png "Validation New")' >> report.md
@@ -109,7 +101,6 @@ jobs:
           
           cml comment update --target=pr --publish report.md
 
-  # --- JOB 3: DEPLOY (MAIN PUSH ONLY) ---
   deploy:
     needs: train
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -117,7 +108,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # On setup l'env juste pour BentoML
       - name: Setup MLOps Env
         uses: ./.github/actions/setup-mlops
         with:
