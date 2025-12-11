@@ -72,14 +72,14 @@ jobs:
           path: evaluation/*
 
       - name: Commit changes in `dvc.lock`
-        env:
-          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
         run: |
+          echo ${{ github.head_ref || github.ref_name }}
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add dvc.lock 
           git commit -m "feat(dvc): retrain model with new data"
           git push origin $BRANCH_NAME
+          git log -3
 
 #########################################################################################################
       - name: Open pull request using gh CLI
