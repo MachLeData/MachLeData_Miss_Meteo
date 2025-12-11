@@ -3,10 +3,8 @@ name: MLOPS
 on:
   push:
 
-  pull_request:
-  workflow_dispatch:         # Allow manual trigger
-  schedule:
-    - cron: '0 9 * *'  # ex: run daily at 06:00 UTC
+#  pull_request:
+
 
 permissions:
   contents: write
@@ -21,7 +19,7 @@ jobs:
 
 #########################################################################################################
       - name: Create new branch
-        if : github.event_name == 'schedule'
+#        if : github.event_name == 'schedule'
         run: |
             BRANCH_NAME="continuous-learning/retrain-$(date +%Y%m%d-%H%M%S)"
             echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
@@ -48,7 +46,7 @@ jobs:
 
 #########################################################################################################
       - name: Ingest new data from Meteo Suisse
-        if : github.event_name == 'schedule'
+#        if : github.event_name == 'schedule'
         run: |
           dvc repro ingestion
 #########################################################################################################
@@ -85,7 +83,7 @@ jobs:
 
 #########################################################################################################
       - name: Open pull request using gh CLI
-        if : github.event_name == 'schedule'
+#        if : github.event_name == 'schedule'
         id: create_pr
         run: |
           PR_URL=$(gh pr create \
