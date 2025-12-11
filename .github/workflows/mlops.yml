@@ -70,7 +70,7 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install --requirement dvc==3.60.1
+        run: pip install dvc==3.60.1
       - name: Download evaluation metrics artifact
         uses: actions/download-artifact@v4
         with:
@@ -133,7 +133,7 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install bentoml==1.4.28
+        run: pip install --requirement requirements-freeze.txt
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
