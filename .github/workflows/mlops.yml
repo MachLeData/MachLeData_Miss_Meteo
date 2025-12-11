@@ -94,7 +94,7 @@ jobs:
             --head $(git rev-parse --abbrev-ref HEAD))
           echo "PR_URL=$PR_URL" >> $GITHUB_ENV
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_PR_UPDATE_DATA }}
 #########################################################################################################
 
   cmf:
