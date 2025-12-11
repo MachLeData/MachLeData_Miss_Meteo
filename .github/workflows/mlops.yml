@@ -1,96 +1,53 @@
-name: MLOPS
+name: MLOps CI/CD
 
 on:
   push:
-    branches: ["**"]
-  pull_request:
+    branches: ["**"]      # Se lance sur tous les pushs
+  pull_request:           # Se lance sur les PRs
     branches: [main]
-  schedule:
-    - cron: '0 9 * * 1'
-  workflow_dispatch:
-    inputs:
-        version:
-          description: "Version name"
-          required: true
-          default: "minor"
-          type: choice
-          options:
-            - major
-            - minor
-            - patch
 
 permissions:
   contents: write
   pull-requests: write
-  issues: write
   id-token: write
 
-env:
-  TargetBranch: ${{ github.ref_name }}
-
 jobs:
-  repro_dvc:
+  # --- JOB 1: TRAIN ---
+  train:
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # --- MODIFICATION ICI ---
-      - name: Setup Branch for Schedule (or Manual Test)
-        # On lance cette étape si c'est le schedule OU un déclenchement manuel
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: |
-          # On ajoute un préfixe 'manual' si c'est manuel pour différencier, ou on garde le même
-          TYPE="retrain"
-          [[ "${{ github.event_name }}" == "workflow_dispatch" ]] && TYPE="manual-test"
-          
-          NEW_BRANCH="continuous-learning/${TYPE}-$(date +%Y%m%d-%H%M%S)"
-          echo "TargetBranch=$NEW_BRANCH" >> $GITHUB_ENV
-          git checkout -b $NEW_BRANCH
-          echo "Branche de travail: $NEW_BRANCH"
-
-      - name: Login to Google Cloud
-        uses: google-github-actions/auth@v2
+      - name: Setup MLOps Env
+        uses: ./.github/actions/setup-mlops
         with:
-          credentials_json: "${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}"
+          gcp_credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-
-      - name: Install dependencies
-        run: pip install --requirement requirements-freeze.txt
-
-      - name: Pull data from bucket
+      - name: Pull Data
         run: dvc pull
 
-      # --- MODIFICATION ICI ---
-      - name: Ingest new data from Meteo Suisse
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: dvc repro ingestion
-
-      - name: Reproduce pipeline
+      - name: Reproduce Pipeline (No Ingestion)
+        # On ne rejoue PAS 'ingestion'. On suppose que les données sont là.
         run: dvc repro prepare train_baseline train evaluate
 
-      # --- MODIFICATION ICI ---
-      - name: Push data to bucket & Commit dvc.lock
-        # On push si c'est un push normal, un schedule, ou un test manuel
-        if: github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      - name: Push Artifacts to DVC & Commit Lock
+        # On commit le lock SEULEMENT si c'est un push (pas sur PR pour éviter les conflits, sauf si désiré)
+        # Ici je le mets sur Push pour respecter ta demande "quand je push... commit dvc.lock"
+        if: github.event_name == 'push'
         run: |
           dvc push
+          
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
+          # Si dvc.lock a changé (suite à l'entraînement)
           if [[ -n $(git status --porcelain dvc.lock) ]]; then
             git add dvc.lock
-            git commit -m "chore(dvc): update dvc.lock [skip ci]"
-            git push origin ${{ env.TargetBranch }}
-          else
-            echo "No changes in dvc.lock"
+            # [skip ci] est crucial ici pour éviter une boucle infinie !
+            git commit -m "feat(model): update model artifacts [skip ci]"
+            git push
           fi
 
       - name: Upload BentoModel artifact
@@ -107,28 +64,13 @@ jobs:
           path: evaluation/*
           overwrite: true
 
-      # --- MODIFICATION ICI ---
-      - name: Open pull request
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr create \
-            --title "Continuous Learning: Model Retrain $(date +%Y-%m-%d)" \
-            --body "Auto-generated PR from ${{ github.event_name }} workflow." \
-            --base main \
-            --head ${{ env.TargetBranch }}
-
+  # --- JOB 2: CML REPORT (PR ONLY) ---
   cml:
-    needs: repro_dvc
+    needs: train
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     steps:
-      # ... (Le reste du job CML reste identique) ...
-      # CML se lancera automatiquement car le job repro_dvc manuel va créer une PR
-      # et GitHub détectera l'événement "pull_request"
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -137,30 +79,88 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install dvc==3.60.1
+        run: |
+          pip install dvc==3.60.1
 
       - name: Setup CML
         uses: iterative/setup-cml@v2
         with:
           version: '0.20.6'
-      - name: Download evaluation metrics artifact
+
+      - name: Download metrics
         uses: actions/download-artifact@v4
         with:
           name: evaluation-metrics
           path: evaluation
-      - name: Create CML report
+
+      - name: Create CML Report
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "# Report" > report.md
-          dvc metrics show --md >> report.md
+          echo "# Model Performance Report" > report.md
+          echo "## Metrics" >> report.md
+          
+          # Si tu as un fichier metrics.json, utilise cat ou jq
+          # dvc metrics show --md >> report.md (nécessite dvc installé, sinon juste cat les fichiers)
+          
+          echo "## Visualizations" >> report.md
+          echo '![](evaluation/plots/baseline_model_finetuning_validation.png "Validation New")' >> report.md
+          echo '![](evaluation/plots/baseline_model_historical_validation.png "Validation Historical")' >> report.md
+          
           cml comment update --target=pr --publish report.md
 
-  deploy_model:
-    # Le deploy ne change pas, il ne se lance que sur push main
+  # --- JOB 3: DEPLOY (MAIN PUSH ONLY) ---
+  deploy:
+    needs: train
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: repro_dvc
     runs-on: ubuntu-24.04
     steps:
-       # ... tes étapes de déploiement ...
-       - run: echo "Deploying..."
+      - uses: actions/checkout@v4
+
+      # On setup l'env juste pour BentoML
+      - name: Setup MLOps Env
+        uses: ./.github/actions/setup-mlops
+        with:
+          gcp_credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Install Deploy Deps
+        run: pip install bentoml google-cloud-artifact-registry
+
+      - name: Login to Docker
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}
+          username: _json_key
+          password: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Download Model
+        uses: actions/download-artifact@v4
+        with:
+          name: baseline-bentomodel
+          path: model
+
+      - name: Build & Push Docker
+        run: |
+          bentoml models import model/baseline.bentomodel
+          
+          # Récupération automatique du tag
+          MODEL_TAG=$(bentoml models list --output json | jq -r '.[0].tag')
+          
+          bentoml containerize $MODEL_TAG \
+             --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:latest \
+             --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}
+             
+          docker push --all-tags ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor
+
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@v3
+        with:
+          cluster_name: ${{ secrets.GCP_K8S_CLUSTER_NAME }}
+          location: ${{ secrets.GCP_K8S_CLUSTER_ZONE }}
+
+      - name: Deploy to K8s
+        run: |
+          kubectl set image deployment/air-temperature-regressor \
+            air-temperature-regressor=${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}
+          
+          kubectl rollout status deployment/air-temperature-regressor

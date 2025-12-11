@@ -1,0 +1,65 @@
+name: Weekly Data Ingestion
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'   # Lundi 9h00
+  workflow_dispatch:      # Pour tester manuellement quand tu veux
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  ingest_and_pr:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Utilisation de notre action personnalisée
+      - name: Setup MLOps Env
+        uses: ./.github/actions/setup-mlops
+        with:
+          gcp_credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Pull Data
+        run: dvc pull
+
+      - name: Ingest New Data
+        run: dvc repro ingestion
+
+      - name: Push Data to DVC Remote
+        run: dvc push
+
+      - name: Create Branch, Commit Lock and Push
+        id: git_push
+        run: |
+          # Nom de branche unique
+          BRANCH_NAME="continuous-learning/retrain-$(date +%Y%m%d-%H%M%S)"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+          git checkout -b $BRANCH_NAME
+
+          # Config Bot
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Commit du dvc.lock qui a changé suite à l'ingestion
+          git add dvc.lock
+          git commit -m "chore(data): weekly ingestion update"
+
+          # Push de la nouvelle branche
+          git push origin $BRANCH_NAME
+
+      - name: Create Pull Request
+        # IMPORTANT: Utiliser un PAT (Personal Access Token) pour déclencher l'autre workflow
+        env:
+          GH_TOKEN: ${{ secrets.PAT_PR_UPDATE_DATA }}
+        run: |
+          gh pr create \
+            --title "Continuous Learning: Model Retrain $(date +%Y-%m-%d)" \
+            --body "This PR creates a new model training cycle based on the latest data ingestion." \
+            --base main \
+            --head ${{ env.BRANCH_NAME }}
