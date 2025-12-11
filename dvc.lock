@@ -7,13 +7,13 @@ stages:
     deps:
     - path: src/ingestion.py
       hash: md5
-      md5: 14927e0d7e7bdb65a2c8109efe565751
-      size: 3541
+      md5: a28250f1fbfd6ea774c90b2b30310df3
+      size: 3585
     outs:
     - path: data/intermediate
       hash: md5
-      md5: 1bb7aa7abd07da62712cd3b25e8a0a08.dir
-      size: 26014
+      md5: 84231f8023aa40bafa66f52aea007c42.dir
+      size: 26095
       nfiles: 1
   prepare:
     cmd: "python src/prepare.py data/raw/ogd-smn_puy_h_recent.csv data/intermediate
