@@ -161,9 +161,13 @@ jobs:
           cluster_name: ${{ secrets.GCP_K8S_CLUSTER_NAME }}
           location: ${{ secrets.GCP_K8S_CLUSTER_ZONE }}
 
-#      - name: Update the Kubernetes deployment
-#        run: |
-#          yq -i '.spec.template.spec.containers[0].image = "${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}"' kubernetes/deployment.yaml
+      - name: Update the Kubernetes deployment image in `kubernetes/deployment.yaml`
+        env:
+          IMAGE_TAG: ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}
+        run: |
+          echo "Updating image to: $IMAGE_TAG"
+          yq -i ".spec.template.spec.containers[0].image = env(IMAGE_TAG)" kubernetes/deployment.yaml
+          cat kubernetes/deployment.yaml
 
       - name: Deploy the model on Kubernetes
         run: |
