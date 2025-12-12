@@ -163,6 +163,7 @@ jobs:
 
       - name: Update the Kubernetes deployment image in `kubernetes/deployment.yaml`
         run: |
+          echo "${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}"
           yq -i '.spec.template.spec.containers[0].image = "${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}"' kubernetes/deployment.yaml
           cat kubernetes/deployment.yaml
       - name: Deploy the model on Kubernetes
