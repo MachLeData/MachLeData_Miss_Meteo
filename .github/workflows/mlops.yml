@@ -31,7 +31,7 @@ jobs:
         run: dvc repro -f prepare train_baseline train evaluate
 
       - name: Push Artifacts to DVC & Commit Lock
-        if: github.event_name == 'push'
+        if: (github.event_name == 'push') && (github.ref != 'refs/heads/main')
         run: |
           dvc push
           
