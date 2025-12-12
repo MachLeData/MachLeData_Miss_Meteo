@@ -116,7 +116,7 @@ jobs:
 
   deploy:
     needs: train
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -164,7 +164,7 @@ jobs:
       - name: Update the Kubernetes deployment image in `kubernetes/deployment.yaml`
         run: |
           yq -i '.spec.template.spec.containers[0].image = "${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}"' kubernetes/deployment.yaml
-
+          cat kubernetes/deployment.yaml
       - name: Deploy the model on Kubernetes
         run: |               
           kubectl apply \               
