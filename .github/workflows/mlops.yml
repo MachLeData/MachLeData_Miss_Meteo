@@ -129,7 +129,7 @@ jobs:
       - name: Login to Docker
         uses: docker/login-action@v3
         with:
-          registry: ${{ vars.GCP_REGITRY }}
+          registry: ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}
           username: _json_key
           password: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
 
@@ -150,10 +150,10 @@ jobs:
       - name: Containerize and publish the BentoML model artifact Docker image
         run: |
           bentoml containerize air_temperature_regressor:latest \
-            --image-tag ${{ vars.GCP_REGITRY }}/air-temperature-regressor:latest \
-            --image-tag ${{ vars.GCP_REGITRY }}/air-temperature-regressor:${{ github.sha }}
+            --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:latest \
+            --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}
           
-          docker push --all-tags ${{ vars.GCP_REGITRY }}/air-temperature-regressor
+          docker push --all-tags ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor
 
       - name: Get Google Cloud's Kubernetes credentials
         uses: google-github-actions/get-gke-credentials@v3
@@ -161,13 +161,12 @@ jobs:
           cluster_name: ${{ secrets.GCP_K8S_CLUSTER_NAME }}
           location: ${{ secrets.GCP_K8S_CLUSTER_ZONE }}
 
-      - name: Update the Kubernetes deployment image in `kubernetes/deployment.yaml`
-        run: |
-          echo "${{ vars.GCP_REGITRY }}/air-temperature-regressor:${{ github.sha }}"
-          yq -i '.spec.template.spec.containers[0].image = "${{ vars.GCP_REGITRY }}/air-temperature-regressor:${{ github.sha }}"' kubernetes/deployment.yaml
-          cat kubernetes/deployment.yaml
+#      - name: Update the Kubernetes deployment
+#        run: |
+#          yq -i '.spec.template.spec.containers[0].image = "${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}"' kubernetes/deployment.yaml
+
       - name: Deploy the model on Kubernetes
-        run: |               
-          kubectl apply \               
+        run: |
+          kubectl apply \
             -f kubernetes/deployment.yaml \
             -f kubernetes/service.yaml
