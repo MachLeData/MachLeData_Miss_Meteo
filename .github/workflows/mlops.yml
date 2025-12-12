@@ -153,7 +153,7 @@ jobs:
             --image-tag ${{ vars.GCP_REGITRY }}/air-temperature-regressor:latest \
             --image-tag ${{ vars.GCP_REGITRY }}/air-temperature-regressor:${{ github.sha }}
           
-          docker push --all-tags ${{ secrets.GCP_REGITRY }}/air-temperature-regressor
+          docker push --all-tags ${{ vars.GCP_REGITRY }}/air-temperature-regressor
 
       - name: Get Google Cloud's Kubernetes credentials
         uses: google-github-actions/get-gke-credentials@v3
