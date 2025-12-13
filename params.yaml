@@ -15,6 +15,6 @@ train:
   seed: 713705
   learning_rate: 0.005
   loss: mse
-  n_epochs: 1
+  n_epochs: 4
   batch_size: 32
     
