@@ -57,6 +57,10 @@ jobs:
           path: evaluation/*
           overwrite: true
 
+      - name: Show disk usage
+        run: |
+          df -h
+
   cml:
     needs: train
     if: github.event_name == 'pull_request'
