@@ -15,12 +15,11 @@ from evaluate import make_predictions
 
 @bentoml.service(name="air_temperature_regressor")
 class AirTemperatureRegressorService:
-    bento_model = BentoModel("baseline:latest")
+    bento_model = bentoml.pytorch.get("baseline:latest")
 
     def __init__(self) -> None:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model_path = self.bento_model.path_of("saved_model.pt")
-        self.model = torch.load(model_path,map_location=self.device)
+        self.model = bentoml.pytorch.load_model(self.bento_model.tag, device_id=self.device)
         print(f"Using device: {self.device}")
 
         self.model.eval()

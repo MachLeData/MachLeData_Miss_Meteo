@@ -3,7 +3,6 @@ include:
   - serve.py
   - utils/train_utils.py
   - evaluate.py
-  - model/baseline.bentoml
 python:
   packages:
     - "torch==2.9.1"
