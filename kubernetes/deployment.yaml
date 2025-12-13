@@ -16,4 +16,4 @@ spec:
     spec:
       containers:
         - name: air-temperature-regressor
-          image: europe-west6-docker.pkg.dev/mlops-miss-meteo/miss-meteo-registry/celestial-bodies-classifier:latest
+          image: europe-west6-docker.pkg.dev/mlops-miss-meteo/miss-meteo-registry/air-temperature-regressor:latest
