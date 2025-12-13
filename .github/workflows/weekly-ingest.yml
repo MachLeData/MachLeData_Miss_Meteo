@@ -16,7 +16,7 @@ jobs:
       image: ghcr.io/machledata/machledata_miss_meteo/mlops-builder:latest
       credentials:
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        password: ${{ secrets.TOKEN_DOCKER_BUILD_IMAGE_CI_CD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
