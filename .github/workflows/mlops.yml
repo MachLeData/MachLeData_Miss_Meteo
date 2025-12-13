@@ -142,18 +142,35 @@ jobs:
     needs: train
 #    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/machledata/machledata_miss_meteo/mlops-builder:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.TOKEN_DOCKER_BUILD_IMAGE_CI_CD }}
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
     steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
       - uses: actions/checkout@v4
 
-      - name: Fix Git Safe Directory
-        run: git config --global --add safe.directory '*'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install uv
+          uv pip install --system -r requirements-deployment-freeze.txt --index-url https://download.pytorch.org/whl/cpu
+
+      # Installer les outils binaires (plus besoin de l'image custom si on fait ça)
+      - name: Install Kubectl & YQ
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+          sudo snap install yq
 
       - name: Show disk usage
         run: |
@@ -196,7 +213,6 @@ jobs:
           bentoml build src
           bentoml list
           bentoml models list
-          
 
       - name: Show disk usage
         run: |
