@@ -22,4 +22,4 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
-        pip install --requirement requirements-freeze.txt
+        uv pip install --requirement requirements-freeze.txt
