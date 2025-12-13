@@ -12,8 +12,8 @@ stages:
     outs:
     - path: data/intermediate
       hash: md5
-      md5: ae6f1d4be255d1226ff50768d9c8b963.dir
-      size: 25937
+      md5: f0ad3c909209a331cfd0168a72b06849.dir
+      size: 25933
       nfiles: 1
   prepare:
     cmd: "python src/prepare.py data/raw/ogd-smn_puy_h_recent.csv data/intermediate
@@ -26,8 +26,8 @@ stages:
       nfiles: 2
     - path: params.yaml
       hash: md5
-      md5: 18cee33e83179c8b02d0556a3dc7f7bb
-      size: 349
+      md5: 2b8bdca706b3d02fbecaad7308ba32c3
+      size: 350
     - path: src/prepare.py
       hash: md5
       md5: e72171fd8d3dbd2be5f493744c7e1763
@@ -67,8 +67,8 @@ stages:
       size: 2316
     - path: params.yaml
       hash: md5
-      md5: 18cee33e83179c8b02d0556a3dc7f7bb
-      size: 349
+      md5: 2b8bdca706b3d02fbecaad7308ba32c3
+      size: 350
     - path: src/train.py
       hash: md5
       md5: f775ddd9000fdf791fb71ab337541ff8
@@ -84,7 +84,7 @@ stages:
     params:
       params.yaml:
         train.batch_size: 8
-        train.learning_rate: 0.01
+        train.learning_rate: 0.001
         train.loss: mse
         train.n_epochs: 5
         train.seed: 713705
@@ -143,8 +143,8 @@ stages:
       size: 58758
     - path: params.yaml
       hash: md5
-      md5: 18cee33e83179c8b02d0556a3dc7f7bb
-      size: 349
+      md5: 2b8bdca706b3d02fbecaad7308ba32c3
+      size: 350
     - path: src/train_baseline.py
       hash: md5
       md5: 36065da53a347ccccfaf395aca39e181
@@ -166,7 +166,7 @@ stages:
         train_baseline.learning_rate: 0.01
         train_baseline.loss: mse
         train_baseline.n_epochs: 20
-        train_baseline.n_neurons1: 4
+        train_baseline.n_neurons1: 8
         train_baseline.n_neurons2: 2
         train_baseline.seed: 713705
     outs:
