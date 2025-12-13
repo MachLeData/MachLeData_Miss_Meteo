@@ -132,10 +132,14 @@ jobs:
 
   deploy:
     needs: train
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+
+      - name: Show disk usage
+        run: |
+          df -h
 
       - name: Setup MLOps Env
         uses: ./.github/actions/setup-mlops
@@ -155,15 +159,28 @@ jobs:
           name: baseline-bentomodel
           path: model
 
+      - name: Show disk usage
+        run: |
+          df -h
+
       - name: Import the BentoML model
         run: |
           bentoml models import model/baseline.bentomodel
+
+      - name: Show disk usage
+        run: |
+          df -h
 
       - name: Build the BentoML model artifact
         run: |
           bentoml build src
           bentoml list
           bentoml models list
+          
+
+      - name: Show disk usage
+        run: |
+          df -h
 
       - name: Containerize and publish the BentoML model artifact Docker image
         run: |
@@ -172,6 +189,10 @@ jobs:
             --image-tag ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor:${{ github.sha }}
           
           docker push --all-tags ${{ secrets.GCP_CONTAINER_REGISTRY_HOST }}/air-temperature-regressor
+
+      - name: Show disk usage
+        run: |
+          df -h
 
       - name: Get Google Cloud's Kubernetes credentials
         uses: google-github-actions/get-gke-credentials@v3
