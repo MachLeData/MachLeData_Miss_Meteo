@@ -11,7 +11,12 @@ permissions:
 
 jobs:
   ingest_and_pr:
-    runs-on: ghcr.io/machledata/machledata_miss_meteo/mlops-builder:latest
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/machledata/machledata_miss_meteo/mlops-builder:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
