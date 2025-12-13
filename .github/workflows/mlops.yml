@@ -28,6 +28,11 @@ jobs:
         with:
           gcp_credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
 
+      - name: Install dependencies
+        shell: bash
+        run: |
+          pip install --requirement requirements-freeze.txt
+
       - name: Show disk usage
         run: |
           df -h
@@ -145,6 +150,11 @@ jobs:
         uses: ./.github/actions/setup-mlops
         with:
           gcp_credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          pip install --requirement requirements-deployment-freeze.txt
 
       - name: Login to Docker
         uses: docker/login-action@v3
