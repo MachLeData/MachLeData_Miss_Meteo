@@ -19,13 +19,25 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Show disk usage
+        run: |
+          df -h
+
       - name: Setup MLOps Env
         uses: ./.github/actions/setup-mlops
         with:
           gcp_credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
 
+      - name: Show disk usage
+        run: |
+          df -h
+
       - name: Pull Data
         run: dvc pull
+
+      - name: Show disk usage
+        run: |
+          df -h
 
       - name: Reproduce Pipeline (No Ingestion)
         run: dvc repro -f prepare train_baseline train evaluate
