@@ -24,6 +24,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fix Git Safe Directory
+        run: git config --global --add safe.directory '*'
+
       - name: Show disk usage
         run: |
           df -h
@@ -144,8 +147,13 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
     steps:
       - uses: actions/checkout@v4
+
+      - name: Fix Git Safe Directory
+        run: git config --global --add safe.directory '*'
 
       - name: Show disk usage
         run: |
