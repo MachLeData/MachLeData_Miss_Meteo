@@ -176,6 +176,8 @@ jobs:
       - name: Import the BentoML model
         run: |
           bentoml models import model/baseline.bentomodel
+          bentoml list
+          bentoml models list
 
       - name: Show disk usage
         run: |
