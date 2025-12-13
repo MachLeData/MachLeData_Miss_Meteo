@@ -17,5 +17,5 @@ train:
   loss: mse
   n_epochs: 5
   batch_size: 8
-  lwf_weight: 0
+  lwf_weight: 1
   replay_ratio: 0.1
