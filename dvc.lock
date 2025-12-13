@@ -26,8 +26,8 @@ stages:
       nfiles: 2
     - path: params.yaml
       hash: md5
-      md5: 2b8bdca706b3d02fbecaad7308ba32c3
-      size: 350
+      md5: 2dac582c4eb191275b102d9ce47db724
+      size: 356
     - path: src/prepare.py
       hash: md5
       md5: e72171fd8d3dbd2be5f493744c7e1763
@@ -67,8 +67,8 @@ stages:
       size: 2316
     - path: params.yaml
       hash: md5
-      md5: 2b8bdca706b3d02fbecaad7308ba32c3
-      size: 350
+      md5: 2dac582c4eb191275b102d9ce47db724
+      size: 356
     - path: src/train.py
       hash: md5
       md5: f775ddd9000fdf791fb71ab337541ff8
@@ -83,10 +83,10 @@ stages:
       size: 3803
     params:
       params.yaml:
-        train.batch_size: 8
+        train.batch_size: 16
         train.learning_rate: 0.001
         train.loss: mse
-        train.n_epochs: 5
+        train.n_epochs: 20
         train.seed: 713705
     outs:
     - path: evaluation/plots/train_history.png
@@ -143,8 +143,8 @@ stages:
       size: 58758
     - path: params.yaml
       hash: md5
-      md5: 2b8bdca706b3d02fbecaad7308ba32c3
-      size: 350
+      md5: 2dac582c4eb191275b102d9ce47db724
+      size: 356
     - path: src/train_baseline.py
       hash: md5
       md5: 36065da53a347ccccfaf395aca39e181
@@ -160,14 +160,14 @@ stages:
     params:
       params.yaml:
         train_baseline.activation: gelu
-        train_baseline.batch_size: 8
-        train_baseline.dropout: 0
+        train_baseline.batch_size: 16
+        train_baseline.dropout: 0.1
         train_baseline.kernel_initializer: he_normal
-        train_baseline.learning_rate: 0.01
+        train_baseline.learning_rate: 0.001
         train_baseline.loss: mse
         train_baseline.n_epochs: 20
         train_baseline.n_neurons1: 8
-        train_baseline.n_neurons2: 2
+        train_baseline.n_neurons2: 4
         train_baseline.seed: 713705
     outs:
     - path: evaluation/plots/baseline_train_history.png
