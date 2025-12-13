@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   ingest_and_pr:
-    runs-on: ubuntu-24.04
+    runs-on: ghcr.io/machledata/machledata_miss_meteo/mlops-builder:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,10 +24,10 @@ jobs:
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
           git checkout -b $BRANCH_NAME
 
-      - name: Setup MLOps Env
-        uses: ./.github/actions/setup-mlops
+      - name: Login to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
-          gcp_credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+          credentials_json: "${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}"
 
       - name: Pull Data
         run: dvc pull
