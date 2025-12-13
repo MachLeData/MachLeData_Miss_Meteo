@@ -145,9 +145,9 @@ def main() -> None:
             ("month_cos", cos_transformer(30), ["day"]),
             ("year_sin", sin_transformer(12), ["month"]),
             ("year_cos", cos_transformer(12), ["month"]),
-            ("precipitation", PowerTransformer(), ["precipitation"]),
-            ("global_radiation", PowerTransformer(), ["global_radiation"]),
-            # ("diffuse_radiation", PowerTransformer(), ["diffuse_radiation"]),
+            ("precipitation", StandardScaler(), ["precipitation"]),
+            ("global_radiation", StandardScaler(), ["global_radiation"]),
+            ("diffuse_radiation", StandardScaler(), ["diffuse_radiation"]),
         ],
         remainder=StandardScaler(),
     )
