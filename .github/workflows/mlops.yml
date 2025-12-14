@@ -168,7 +168,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          uv pip install -r requirements-deployment-freeze.txt
+          uv pip install --system -r requirements-deployment-freeze.txt
           uv pip install --system torch==2.9.1 pillow==11.3.0  --index-url https://download.pytorch.org/whl/cpu
 
       # Installer les outils binaires (plus besoin de l'image custom si on fait ça)
