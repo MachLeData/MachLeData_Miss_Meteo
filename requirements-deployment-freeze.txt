@@ -1,3 +1,4 @@
+bentoml==1.4.30
 google-api-core==2.28.1
 google-auth==2.41.1
 google-auth-oauthlib==1.2.3
@@ -8,8 +9,6 @@ google-pasta==0.2.0
 google-resumable-media==2.7.2
 googleapis-common-protos==1.71.0
 pandas==2.3.3
-torch==2.9.1
 matplotlib==3.10.7
-pillow==11.3.0
 pandas==2.3.3
 scikit-learn==1.7.2
