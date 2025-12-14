@@ -195,12 +195,12 @@ def preprocess_features(features_df: pd.DataFrame, df_historical: pd.DataFrame =
         axis=1,
     )
 
-    df_historical = df_historical.rename(
-        {col: transform_column_name(col) for col in df_historical.columns},
-        axis=1,
-    )
-
     if df_historical is not None:
+        df_historical = df_historical.rename(
+            {col: transform_column_name(col) for col in df_historical.columns},
+            axis=1,
+        )
+        
         column_transformer = create_column_transformer().fit(df_historical)
         features_df = column_transformer.transform(features_df)
     else:
