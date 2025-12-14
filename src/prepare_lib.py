@@ -150,7 +150,7 @@ def create_column_transformer() -> ColumnTransformer:
     column_transformer = ColumnTransformer(
         transformers=[
             ("wind_direction_sin", sin_transformer(360), ["wind_direction"]),
-            ("wind_direction_cos", cos_transformer(360), ["wind_direction"]),
+            ("wind_direction_cos", cos_transformer(360), ["wind_direction"]),            
             ("day_sin", sin_transformer(24), ["hour"]),
             ("day_cos", cos_transformer(24), ["hour"]),
             ("month_sin", sin_transformer(30), ["day"]),
@@ -188,15 +188,24 @@ def impute_missing_values(
     return features_df
 
 
-def preprocess_features(features_df: pd.DataFrame) -> pd.DataFrame:
-    column_transformer = create_column_transformer()
-    features_df = column_transformer.fit_transform(features_df)
-
+def preprocess_features(features_df: pd.DataFrame, df_historical: pd.DataFrame = None) -> pd.DataFrame:
     # Renommer les colonnes
     features_df = features_df.rename(
         {col: transform_column_name(col) for col in features_df.columns},
         axis=1,
     )
+
+    df_historical = df_historical.rename(
+        {col: transform_column_name(col) for col in df_historical.columns},
+        axis=1,
+    )
+
+    if df_historical is not None:
+        column_transformer = create_column_transformer().fit(df_historical)
+        features_df = column_transformer.transform(features_df)
+    else:
+        column_transformer = create_column_transformer()
+        features_df = column_transformer.fit_transform(features_df)
 
     # Imputation
     features_df = impute_missing_values(features_df, n_neighbors=3)

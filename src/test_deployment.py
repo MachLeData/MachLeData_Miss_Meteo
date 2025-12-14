@@ -69,17 +69,25 @@ def get_set_from_meteo_suisse():
         sys.exit(1)
 
     try:
-        return process_data(df_recent, df_historical, start_utc, end_utc)
+        return process_data(df_recent, df_historical, start_utc, end_utc), df_historical
     except Exception as e:
         print(f"Processing error: {e}", file=sys.stderr)
         sys.exit(1)
 
-def prepare_data(df_last_24h):
+def prepare_data(df_last_24h, df_historical):
     metadata_df = load_metadata(RAW_METADATA_FILE)
+
     meteo_df = apply_metadata_to_meteo(df_last_24h, metadata_df)
+    df_historical = apply_metadata_to_meteo(df_historical, metadata_df)
+
     meteo_df["historical"] = True
+    df_historical["historical"] = True
+
     features_df = build_raw_feature_matrix(meteo_df)
-    features_df = preprocess_features(features_df)
+    df_historical = build_raw_feature_matrix(df_historical)
+
+    features_df = preprocess_features(features_df, df_historical)
+
     supervised_df = build_supervised_dataframe(meteo_df, features_df, lag_hours=0)
     supervised_df["reference_timestamp"] = supervised_df["reference_timestamp"].astype(str)
     return supervised_df
@@ -179,10 +187,10 @@ def main():
     print("\n" + "=" * 60 + "\n")
 
     # Get data from meteo suisse
-    df_last_24h = get_set_from_meteo_suisse()
+    df_last_24h, df_historical = get_set_from_meteo_suisse()
 
     # Prepare data for prediction
-    df_last_24h_prepared = prepare_data(df_last_24h)
+    df_last_24h_prepared = prepare_data(df_last_24h, df_historical)
 
     payload = {"data": df_last_24h_prepared.to_dict(orient="list")}
 
