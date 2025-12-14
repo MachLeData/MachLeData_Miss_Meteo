@@ -165,17 +165,17 @@ def save_baseline_model(model):
     """Save model as the new baseline in BentoML store and export to folder."""
     try:
         bentoml.pytorch.save_model(
-            "baseline_model",
+            "baseline",
             model,
             signatures={"__call__": {"batchable": True}},
         )
         
-        baseline_model_folder = Path("model/baseline")
+        baseline_model_folder = Path("model/")
         baseline_model_folder.mkdir(parents=True, exist_ok=True)
-        baseline_model_path = baseline_model_folder / "baseline_model.bentomodel"
+        baseline_model_path = baseline_model_folder / "baseline.bentomodel"
         
         bentoml.models.export_model(
-            "baseline_model:latest",
+            "baseline:latest",
             str(baseline_model_path.absolute()),
         )
         
