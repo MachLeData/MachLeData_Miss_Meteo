@@ -1,5 +1,7 @@
 # Project Scoping
 
+Short-term air temperature forecasts based on historical and recent weather observations, developed using an MLOps Continuous learning approach. 
+
 ## Problem and expected results
 
 People are not happy with meteo predictions, so we want to create a better solution that predicts short term temperature evolution with actual and historical meteo data.
@@ -43,8 +45,34 @@ Develop all the project steps with MLOPS in mind.
 - EDA: Create a first model on a notebook with downloaded historical data
 - In parallel, set up the production pipeline: collect data in batches, infer in batches, display predictions, evaluate performance
 - Deploy the model inside the pipeline do it automatically with CI/CD
-- Implement continuous learning for our production model
+- Implement continuous learning iterations for the production model:
+  - **Iteration 1:** every Monday, retrieve the past week’s data and **retrain** the model on the updated dataset
+  - **Iteration 2:** use **Learning without Forgetting (LwF)** with a **replay buffer** to reduce catastrophic forgetting during updates
 
+## Repository structure
+Key folders/files (as currently present): :contentReference[oaicite:5]{index=5}
+
+## Repository structure
+
+```text
+MachLeData_Miss_Meteo/
+├── .dvc/
+├── .github/
+├── data/
+├── kubernetes/
+├── model/
+├── notebook/
+├── src/
+├── .dvcignore
+├── .env
+├── .gitignore
+├── README.md
+├── dvc.lock
+├── dvc.yaml
+├── params.yaml
+├── requirements-freeze.txt
+└── requirements.txt
+```
 
 # gcloud
 
@@ -86,3 +114,20 @@ Delete the cluster
 ```bash
 $ gcloud container clusters delete --zone $GCP_K8S_CLUSTER_ZONE $GCP_K8S_CLUSTER_NAME
 ```
+
+## Quickstart
+
+1) Create & activate a virtual environment:
+```bash
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+````
+2) Install dependencies:
+```` bash
+pip install -r requirements.txt
+pip install -r requirements-freeze.txt
+````
+3) (Optional) Run the pipeline
+```` bash
+dvc repro
+````
