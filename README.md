@@ -74,7 +74,57 @@ MachLeData_Miss_Meteo/
 └── requirements.txt
 ```
 
-# gcloud
+## Quickstart
+
+1) Install the project dependencies:
+- docker
+- python 3.12
+- gcloud
+
+2) Create & activate a virtual environment:
+```bash
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+```
+3) Install dependencies:
+``` bash
+pip install -r requirements-freeze.txt
+```
+
+4) Export environment variables in .env file.
+
+5) Connect and setup gcloud
+``` bash
+gcloud init
+gcloud config set project $GCP_PROJECT_ID
+gcloud auth application-default login
+``` 
+
+7) Setup a cloud storage for DVC
+``` bash
+dvc remote add -d data gs://$GCP_BUCKET_NAME/dvcstore
+```
+
+4) Install Kubernetes CLI:
+``` bash
+gcloud components install kubectl # Install kubectl with gcloud
+
+gcloud services enable container.googleapis.com # Enable the Google Kubernetes Engine API
+
+export GCP_K8S_CLUSTER_NAME=<my_cluster_name> #Create the Kubernetes cluster
+export GCP_K8S_CLUSTER_ZONE=<my_cluster_zone>
+gcloud container clusters create \
+    --machine-type=e2-standard-2 \
+    --num-nodes=2 \
+    --zone=$GCP_K8S_CLUSTER_ZONE \
+    $GCP_K8S_CLUSTER_NAME
+````
+5) (Optional) Run the pipeline
+``` bash
+dvc repro
+```
+
+# Google cloud
 
 Need to setup and source environment variables
 ```bash
@@ -115,33 +165,16 @@ Delete the cluster
 $ gcloud container clusters delete --zone $GCP_K8S_CLUSTER_ZONE $GCP_K8S_CLUSTER_NAME
 ```
 
-## Quickstart
+# Testing application
+There is a simple script in python used to test API from the serve in local or in the cloud.
 
-1) Create & activate a virtual environment:
+First, you have to setup the environment:
 ```bash
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-````
-2) Install dependencies:
-```` bash
-pip install -r requirements.txt
-pip install -r requirements-freeze.txt
-````
-3) Install Kubernetes CLI:
-```` bash
-gcloud components install kubectl # Install kubectl with gcloud
+export MODEL_SERVER_HOST="http://address:port"
+```
 
-gcloud services enable container.googleapis.com # Enable the Google Kubernetes Engine API
+Then you can execute the script:
+```bash
+python src/test_deployment.py
+```
 
-export GCP_K8S_CLUSTER_NAME=<my_cluster_name> #Create the Kubernetes cluster
-export GCP_K8S_CLUSTER_ZONE=<my_cluster_zone>
-gcloud container clusters create \
-    --machine-type=e2-standard-2 \
-    --num-nodes=2 \
-    --zone=$GCP_K8S_CLUSTER_ZONE \
-    $GCP_K8S_CLUSTER_NAME
-````
-4) (Optional) Run the pipeline
-```` bash
-dvc repro
-````
