@@ -127,7 +127,21 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 pip install -r requirements-freeze.txt
 ````
-3) (Optional) Run the pipeline
+3) Install Kubernetes CLI:
+```` bash
+gcloud components install kubectl # Install kubectl with gcloud
+
+gcloud services enable container.googleapis.com # Enable the Google Kubernetes Engine API
+
+export GCP_K8S_CLUSTER_NAME=<my_cluster_name> #Create the Kubernetes cluster
+export GCP_K8S_CLUSTER_ZONE=<my_cluster_zone>
+gcloud container clusters create \
+    --machine-type=e2-standard-2 \
+    --num-nodes=2 \
+    --zone=$GCP_K8S_CLUSTER_ZONE \
+    $GCP_K8S_CLUSTER_NAME
+````
+4) (Optional) Run the pipeline
 ```` bash
 dvc repro
 ````
